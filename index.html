@@ -7,7 +7,7 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; color: #333; padding-top: 80px; }
         
-        /* HEADER TIMER (Updated) */
+        /* HEADER TIMER */
         #timer-bar {
             position: fixed; top: 0; left: 0; width: 100%;
             background: #2c3e50; color: #fff;
@@ -15,18 +15,12 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000;
             height: 60px;
         }
-
-        /* Container buat Jam & Tombol */
         .timer-content { display: flex; align-items: center; gap: 15px; }
-
         #time-text { font-size: 1.5em; font-weight: bold; letter-spacing: 2px; font-family: monospace; }
-        
-        /* Tombol Mulai di Header */
         #btn-start-timer {
             background: #27ae60; color: white; border: none; padding: 8px 20px;
             font-size: 1em; font-weight: bold; border-radius: 20px; cursor: pointer;
-            box-shadow: 0 4px 0 #1e8449; transition: transform 0.1s;
-            display: block; /* Default muncul */
+            box-shadow: 0 4px 0 #1e8449; transition: transform 0.1s; display: block;
         }
         #btn-start-timer:active { transform: translateY(4px); box-shadow: none; }
 
@@ -39,7 +33,9 @@
         .options { display: flex; gap: 10px; flex-grow: 1; justify-content: space-between; }
         
         input[type="radio"] { display: none; }
-        label { 
+        
+        /* FIX: Cuma label di dalam options yang jadi tombol bulat */
+        .options label { 
             display: flex; align-items: center; justify-content: center;
             width: 45px; height: 45px; border-radius: 50%; 
             background: #e9ecef; color: #555; font-weight: bold; font-size: 16px;
@@ -47,14 +43,19 @@
         }
         input[type="radio"]:checked + label { background: #007bff; color: white; border-color: #0056b3; transform: scale(1.1); }
         
-        /* WARNA KOREKSI */
         .correct { background-color: #d4edda !important; border-left: 6px solid #28a745; }
         .wrong { background-color: #f8d7da !important; border-left: 6px solid #dc3545; }
 
         /* AREA KUNCI & HASIL */
         #secret-area { display: none; margin-top: 30px; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         
-        .key-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; letter-spacing: 5px; font-size: 1.2em; text-transform: uppercase; }
+        /* FIX: Label di area kunci jadi normal (teks biasa) */
+        #secret-area label { 
+            display: block; width: 100%; text-align: left; 
+            font-weight: bold; margin-bottom: 8px; color: #2c3e50; font-size: 1em;
+        }
+
+        .key-input { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; letter-spacing: 5px; font-size: 1.2em; text-transform: uppercase; box-sizing: border-box; }
         .score-box { text-align: center; background: #2c3e50; color: white; padding: 20px; border-radius: 10px; margin-top: 20px; }
         
         .btn-main { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 10px; }
@@ -90,7 +91,7 @@
         </div>
 
         <div id="secret-area">
-            <h3 style="text-align:center; color:#2c3e50;">Input Kunci Jawaban</h3>
+            <h3 style="text-align:center; color:#2c3e50; margin-bottom:20px;">Input Kunci Jawaban</h3>
             
             <label>Kunci TWK (30 Huruf):</label>
             <input type="text" id="keyTWK" class="key-input" placeholder="ABCD..." maxlength="30">
@@ -127,7 +128,6 @@
         let timerInterval;
         let isRunning = false;
 
-        // 1. Generate Soal
         function createQuestions(start, end, containerId) {
             const container = document.getElementById(containerId);
             let html = '';
@@ -145,18 +145,13 @@
         createQuestions(31, 65, 'tiu-container');
         createQuestions(66, 110, 'tkp-container');
 
-        // 2. Logic Startup
         window.onload = function() {
             restoreAnswers();
-
-            // Cek apakah timer SEBELUMNYA sudah jalan
             const savedTarget = localStorage.getItem('cpns_target_time');
             if (savedTarget) {
-                // Kalau ada data lama, lanjutin timer & sembunyikan tombol start
                 document.getElementById('btn-start-timer').style.display = 'none';
                 runTimer(savedTarget);
             } else {
-                // Kalau belum ada, biarkan tombol start muncul
                 document.getElementById('time-text').innerText = "01:40:00";
             }
         };
@@ -165,8 +160,6 @@
             const now = new Date().getTime();
             const targetTime = now + (EXAM_DURATION_MINUTES * 60 * 1000);
             localStorage.setItem('cpns_target_time', targetTime);
-            
-            // Sembunyikan tombol
             document.getElementById('btn-start-timer').style.display = 'none';
             runTimer(targetTime);
         }
@@ -189,16 +182,11 @@
                 const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
                 const h = hours < 10 ? "0" + hours : hours;
                 const m = minutes < 10 ? "0" + minutes : minutes;
                 const s = seconds < 10 ? "0" + seconds : seconds;
-
                 document.getElementById("time-text").innerText = `${h}:${m}:${s}`;
-
-                if (distance < 5 * 60 * 1000) { 
-                    document.getElementById("timer-bar").style.background = "#c0392b";
-                }
+                if (distance < 5 * 60 * 1000) document.getElementById("timer-bar").style.background = "#c0392b";
             }, 1000);
         }
 
@@ -238,18 +226,12 @@
             for (let i = 1; i <= 30; i++) {
                 const userAns = document.querySelector(`input[name="q${i}"]:checked`);
                 const keyAns = kTWK[i-1]; const row = document.getElementById(`row-${i}`);
-                if (userAns && keyAns) { 
-                    if (userAns.value === keyAns) { sTWK += 5; row.classList.add('correct'); } 
-                    else { row.classList.add('wrong'); } 
-                }
+                if (userAns && keyAns) { if (userAns.value === keyAns) { sTWK += 5; row.classList.add('correct'); } else { row.classList.add('wrong'); } }
             }
             for (let i = 31; i <= 65; i++) {
                 const userAns = document.querySelector(`input[name="q${i}"]:checked`);
                 const keyAns = kTIU[i-31]; const row = document.getElementById(`row-${i}`);
-                if (userAns && keyAns) { 
-                    if (userAns.value === keyAns) { sTIU += 5; row.classList.add('correct'); } 
-                    else { row.classList.add('wrong'); } 
-                }
+                if (userAns && keyAns) { if (userAns.value === keyAns) { sTIU += 5; row.classList.add('correct'); } else { row.classList.add('wrong'); } }
             }
 
             const total = sTWK + sTIU + sTKP;
@@ -263,22 +245,18 @@
                 const btn = document.querySelector('#secret-area button.btn-main');
                 const oriText = btn.innerText;
                 btn.innerText = "Menyimpan..."; btn.disabled = true;
-                
                 const fd = new FormData();
                 fd.append('Nilai TWK', sTWK); fd.append('Nilai TIU', sTIU); 
                 fd.append('Nilai TKP', sTKP); fd.append('TOTAL', total);
-                
                 fetch(scriptURL, { method: 'POST', body: fd })
                     .then(r => { alert(`Data Tersimpan! Total: ${total}`); btn.innerText = oriText; btn.disabled = false; })
                     .catch(e => { alert('Gagal koneksi Excel.'); btn.innerText = oriText; btn.disabled = false; });
             }
         }
 
-        // RESET YANG BENERAN BERSIH
         function resetForm() {
             if(confirm('Yakin mau RESET SEMUA? Waktu & Jawaban akan dihapus.')) {
                 localStorage.clear();
-                // Paksa reload tanpa cache biar bersih
                 window.location.reload();
             }
         }
