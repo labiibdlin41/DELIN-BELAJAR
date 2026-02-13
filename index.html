@@ -3,13 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LJK Digital CPNS - Mode Praktis</title>
+    <title>LJK Digital CPNS - Timer Mode</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f6f8; padding: 20px; max-width: 600px; margin: 0 auto; color: #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f6f8; padding: 20px; padding-top: 70px; max-width: 600px; margin: 0 auto; color: #333; }
+        
+        /* TIMER STYLING (YANG BARU) */
+        #timer-bar {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: #2c3e50; color: #fff;
+            padding: 15px; text-align: center;
+            font-size: 1.2em; font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000; transition: background 0.3s;
+        }
+        
         h2 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #666; font-size: 0.9em; margin-bottom: 20px; }
         
-        .section-header { background: #34495e; color: #fff; padding: 10px 15px; border-radius: 6px; margin-top: 30px; font-weight: bold; letter-spacing: 0.5px; }
+        .section-header { background: #34495e; color: #fff; padding: 10px 15px; border-radius: 6px; margin-top: 30px; font-weight: bold; }
         
         .question-row { display: flex; align-items: center; background: #fff; margin-bottom: 8px; padding: 12px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .q-num { width: 40px; font-weight: bold; color: #555; }
@@ -21,26 +32,26 @@
             text-align: center; border-radius: 50%; background: #eee; color: #555;
             cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s;
         }
-        input[type="radio"]:checked + label { background: #2980b9; color: white; transform: scale(1.1); box-shadow: 0 2px 5px rgba(41, 128, 185, 0.4); }
+        input[type="radio"]:checked + label { background: #2980b9; color: white; transform: scale(1.1); }
         
         .correct { background-color: #d4edda !important; border-left: 5px solid #28a745; }
         .wrong { background-color: #f8d7da !important; border-left: 5px solid #dc3545; }
 
-        #secret-area { display: none; margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 20px; animation: fadeIn 0.5s; background: #fff; padding: 20px; border-radius: 10px; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
+        #secret-area { display: none; margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 20px; background: #fff; padding: 20px; border-radius: 10px; }
+        
         .key-input-group { margin-bottom: 15px; }
-        .key-input-group label { display: block; width: 100%; text-align: left; background: none; color: #333; font-weight: bold; height: auto; margin-bottom: 5px; border-radius: 0; }
+        .key-input-group label { display: block; width: 100%; font-weight: bold; margin-bottom: 5px; }
         .key-input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-family: monospace; letter-spacing: 3px; text-transform: uppercase; font-size: 1.1em; }
         .score-input { width: 100px; padding: 10px; border: 2px solid #2980b9; border-radius: 6px; font-weight: bold; font-size: 1.2em; text-align: center; }
 
         .score-display { text-align: center; margin-top: 20px; padding: 15px; background: #2c3e50; color: white; border-radius: 8px; }
-        
         .btn-main { display: block; width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .sticky-footer { position: sticky; bottom: 20px; z-index: 100; }
     </style>
 </head>
 <body>
+
+    <div id="timer-bar">Waktu: <span id="time-left">Loading...</span></div>
 
     <h2>LJK Digital CPNS</h2>
     <div class="subtitle">Kerjakan soal dulu. Hitung skor belakangan.</div>
@@ -68,144 +79,4 @@
             <input type="text" id="keyTWK" class="key-input" placeholder="ABCD..." maxlength="30">
         </div>
 
-        <div class="key-input-group">
-            <label>Kunci TIU (35 Huruf):</label>
-            <input type="text" id="keyTIU" class="key-input" placeholder="ABCD..." maxlength="35">
-        </div>
-
-        <div class="key-input-group" style="background: #e8f6f3; padding: 15px; border-radius: 8px; border: 1px solid #d4efdf;">
-            <label style="color:#16a085;">Skor TKP Manual:</label>
-            <small style="display:block; margin-bottom:5px; color:#555;">Cek manual di buku, lalu tulis total poinmu di sini.</small>
-            <input type="number" id="manualTKP" class="score-input" placeholder="0">
-        </div>
-        
-        <button type="button" class="btn-main" style="background:#2980b9;" onclick="calculateScore()">HITUNG SKOR TOTAL</button>
-
-        <div id="result-display" style="display:none;">
-            <div class="score-display">
-                <p>TWK: <span id="res-twk">0</span> | TIU: <span id="res-tiu">0</span> | TKP: <span id="res-tkp">0</span></p>
-                <h1 style="margin:10px 0;">TOTAL: <span id="res-total">0</span></h1>
-            </div>
-            <button type="button" style="background:#c0392b; color:white; border:none; padding:10px; border-radius:5px; margin-top:15px; width:100%; cursor:pointer;" onclick="resetForm()">Reset Ulang</button>
-        </div>
-    </div>
-
-    <script>
-        // CONFIG SCRIPT (OPSIONAL)
-        const scriptURL = ''; 
-
-        // 1. Generate Soal
-        function createQuestions(start, end, containerId) {
-            const container = document.getElementById(containerId);
-            for (let i = start; i <= end; i++) {
-                let html = `<div class="question-row" id="row-${i}">
-                    <div class="q-num">${i}.</div>
-                    <div class="options">`;
-                ['A', 'B', 'C', 'D', 'E'].forEach(opt => {
-                    html += `<input type="radio" name="q${i}" id="q${i}${opt}" value="${opt}" onchange="saveAnswer(${i}, '${opt}')">
-                             <label for="q${i}${opt}">${opt}</label>`;
-                });
-                html += `</div></div>`;
-                container.innerHTML += html;
-            }
-        }
-        createQuestions(1, 30, 'twk-container');
-        createQuestions(31, 65, 'tiu-container');
-        createQuestions(66, 110, 'tkp-container');
-
-        // 2. LocalStorage (Simpan Otomatis Jawaban & Kunci)
-        window.onload = function() {
-            // Load Jawaban Soal
-            for (let i = 1; i <= 110; i++) {
-                const saved = localStorage.getItem('cpns_q' + i);
-                if (saved) {
-                    const el = document.getElementById('q' + i + saved);
-                    if (el) el.checked = true;
-                }
-            }
-            // Load Kunci yang pernah diketik (biar ga ilang pas refresh)
-            if(localStorage.getItem('keyTWK')) document.getElementById('keyTWK').value = localStorage.getItem('keyTWK');
-            if(localStorage.getItem('keyTIU')) document.getElementById('keyTIU').value = localStorage.getItem('keyTIU');
-            if(localStorage.getItem('manualTKP')) document.getElementById('manualTKP').value = localStorage.getItem('manualTKP');
-        };
-
-        function saveAnswer(n, val) {
-            localStorage.setItem('cpns_q' + n, val);
-        }
-
-        // Simpan Kunci saat diketik
-        document.getElementById('keyTWK').addEventListener('input', function() { localStorage.setItem('keyTWK', this.value); });
-        document.getElementById('keyTIU').addEventListener('input', function() { localStorage.setItem('keyTIU', this.value); });
-        document.getElementById('manualTKP').addEventListener('input', function() { localStorage.setItem('manualTKP', this.value); });
-
-        function bukaAreaKunci() {
-            document.querySelector('.sticky-footer').style.display = 'none';
-            document.getElementById('secret-area').style.display = 'block';
-            window.scrollTo(0, document.body.scrollHeight);
-        }
-
-        // 3. Logic Hitung Skor Terpisah
-        function calculateScore() {
-            // Ambil Kunci TWK
-            const kTWK = document.getElementById('keyTWK').value.toUpperCase().replace(/[^A-E]/g, '');
-            // Ambil Kunci TIU
-            const kTIU = document.getElementById('keyTIU').value.toUpperCase().replace(/[^A-E]/g, '');
-            // Ambil Nilai Manual TKP
-            const sTKP = parseInt(document.getElementById('manualTKP').value) || 0;
-
-            let sTWK = 0;
-            let sTIU = 0;
-
-            // Reset Warna
-            document.querySelectorAll('.question-row').forEach(r => r.classList.remove('correct', 'wrong'));
-
-            // HITUNG TWK (1-30)
-            for (let i = 1; i <= 30; i++) {
-                const userAns = document.querySelector(`input[name="q${i}"]:checked`);
-                const keyAns = kTWK[i-1]; 
-                const row = document.getElementById(`row-${i}`);
-                
-                if (userAns && keyAns) {
-                    if (userAns.value === keyAns) {
-                        sTWK += 5;
-                        row.classList.add('correct');
-                    } else {
-                        row.classList.add('wrong');
-                    }
-                }
-            }
-
-            // HITUNG TIU (31-65) - Index kunci dimulai dari 0, jadi i-31
-            for (let i = 31; i <= 65; i++) {
-                const userAns = document.querySelector(`input[name="q${i}"]:checked`);
-                const keyAns = kTIU[i-31]; // Hati-hati di sini, array kunci TIU mulai dari index 0
-                const row = document.getElementById(`row-${i}`);
-                
-                if (userAns && keyAns) {
-                    if (userAns.value === keyAns) {
-                        sTIU += 5;
-                        row.classList.add('correct');
-                    } else {
-                        row.classList.add('wrong');
-                    }
-                }
-            }
-
-            // Tampilkan Hasil
-            document.getElementById('res-twk').innerText = sTWK;
-            document.getElementById('res-tiu').innerText = sTIU;
-            document.getElementById('res-tkp').innerText = sTKP;
-            document.getElementById('res-total').innerText = sTWK + sTIU + sTKP;
-            
-            document.getElementById('result-display').style.display = 'block';
-        }
-
-        function resetForm() {
-            if(confirm('Hapus semua jawaban & kunci?')) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-    </script>
-</body>
-</html>
+        <div class="
