@@ -3,24 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CAT CPNS PRO (Dashboard)</title>
+    <title>CAT CPNS PRO (Multi-Chart)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 0; color: #333; }
         
-        /* === DASHBOARD / LOBBY STYLE === */
+        /* DASHBOARD */
         #lobby-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #fff; z-index: 2000; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
-            overflow-y: auto;
+            align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; overflow-y: auto;
         }
         .dashboard-card {
             background: white; width: 100%; max-width: 600px;
-            padding: 20px; border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;
+            padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;
         }
-        .chart-container { position: relative; height: 300px; width: 100%; margin: 20px 0; }
+        .chart-container { position: relative; height: 320px; width: 100%; margin: 20px 0; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-item { background: #f8f9fa; padding: 10px; border-radius: 10px; border: 1px solid #eee; }
         .stat-val { font-size: 1.5em; font-weight: bold; color: #2c3e50; }
@@ -34,9 +32,8 @@
         }
         .btn-start-big:hover { transform: scale(1.02); }
 
-        /* === UJIAN STYLE (Hidden awalnya) === */
+        /* UJIAN */
         #exam-wrapper { display: none; padding-top: 80px; padding-bottom: 80px; }
-        
         #timer-bar {
             position: fixed; top: 0; left: 0; width: 100%;
             background: linear-gradient(90deg, #2c3e50, #34495e); color: #fff;
@@ -45,7 +42,7 @@
         }
         .timer-content { display: flex; align-items: center; gap: 15px; font-weight: bold; font-size: 1.4em; letter-spacing: 1px; font-family: monospace; }
         
-        /* Drawer & Map */
+        /* NAV DRAWER */
         .btn-map-toggle {
             background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;
             padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9em; display: flex; align-items: center; gap: 5px;
@@ -93,23 +90,23 @@
     <div id="lobby-screen">
         <div class="dashboard-card">
             <h2 style="color:#2c3e50; margin-bottom:5px;">Statistik Pejuang ASN</h2>
-            <p style="color:#7f8c8d; font-size:0.9em;">Pantau progress belajarmu di sini</p>
+            <p style="color:#7f8c8d; font-size:0.9em;">Pantau progress TWK, TIU, TKP kamu!</p>
             
             <div class="stat-grid">
                 <div class="stat-item">
                     <div class="stat-val" id="stat-high">-</div>
-                    <div class="stat-label">Tertinggi</div>
+                    <div class="stat-label">Total Tertinggi</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-val" id="stat-count">-</div>
-                    <div class="stat-label">Total Tryout</div>
+                    <div class="stat-label">Kali Tryout</div>
                 </div>
             </div>
 
             <div class="chart-container">
                 <canvas id="scoreChart"></canvas>
             </div>
-            <p id="loading-text" style="color:#e67e22; font-size:0.9em; font-style:italic;">⏳ Sedang mengambil data dari Excel...</p>
+            <p id="loading-text" style="color:#e67e22; font-size:0.9em; font-style:italic;">⏳ Sedang mengambil data...</p>
 
             <button class="btn-start-big" onclick="masukUjian()">🔥 MULAI UJIAN BARU</button>
         </div>
@@ -117,9 +114,7 @@
 
     <div id="exam-wrapper">
         <div id="timer-bar">
-            <div class="timer-content">
-                <span id="time-text">01:40:00</span>
-            </div>
+            <div class="timer-content"><span id="time-text">01:40:00</span></div>
             <button class="btn-map-toggle" onclick="toggleMap()"><span>🔢 Peta Soal</span></button>
         </div>
 
@@ -166,14 +161,12 @@
         const EXAM_DURATION_MINUTES = 100;
         let timerInterval;
 
-        // === 1. LOGIC DASHBOARD & GRAFIK ===
         window.onload = function() {
             createQuestions(1, 30, 'twk-container');
             createQuestions(31, 65, 'tiu-container');
             createQuestions(66, 110, 'tkp-container');
             restoreAnswers();
             
-            // Tarik Data Grafik
             if(scriptURL) {
                 fetch(scriptURL)
                 .then(response => response.json())
@@ -183,25 +176,21 @@
                 })
                 .catch(error => {
                     document.getElementById('loading-text').innerText = "Gagal mengambil data Excel.";
-                    console.error('Error:', error);
+                    console.error(error);
                 });
-            } else {
-                document.getElementById('loading-text').innerText = "URL Script belum dipasang.";
-            }
+            } else { document.getElementById('loading-text').innerText = "URL Script belum dipasang."; }
         };
 
         function renderChart(data) {
-            // Data dari Excel: Array of Objects { label: "...", score: ... }
-            const labels = data.map(item => item.label.toString().substring(0, 10)); // Ambil 10 huruf awal (Tanggal)
-            const scores = data.map(item => item.score);
+            const labels = data.map(item => item.label.toString().substring(0, 5)); // Ambil tgl pendek (DD/MM)
+            const scoresTotal = data.map(item => item.total);
+            const scoresTWK = data.map(item => item.twk);
+            const scoresTIU = data.map(item => item.tiu);
+            const scoresTKP = data.map(item => item.tkp);
             
-            // Hitung Statistik
-            const maxScore = Math.max(...scores);
-            const totalTryout = scores.length;
-            
-            if(totalTryout > 0) {
-                document.getElementById('stat-high').innerText = maxScore;
-                document.getElementById('stat-count').innerText = totalTryout;
+            if(scoresTotal.length > 0) {
+                document.getElementById('stat-high').innerText = Math.max(...scoresTotal);
+                document.getElementById('stat-count').innerText = scoresTotal.length;
             }
 
             const ctx = document.getElementById('scoreChart').getContext('2d');
@@ -209,28 +198,50 @@
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Skor Total SKD',
-                        data: scores,
-                        borderColor: '#2980b9',
-                        backgroundColor: 'rgba(41, 128, 185, 0.1)',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#e74c3c',
-                        pointRadius: 5,
-                        fill: true,
-                        tension: 0.3 // Biar garisnya melengkung halus
-                    }]
+                    datasets: [
+                        {
+                            label: 'TOTAL',
+                            data: scoresTotal,
+                            borderColor: '#2c3e50', // Biru Gelap Tebal
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'TWK',
+                            data: scoresTWK,
+                            borderColor: '#e74c3c', // Merah
+                            borderWidth: 2,
+                            borderDash: [5, 5], // Garis putus-putus
+                            pointRadius: 2,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'TIU',
+                            data: scoresTIU,
+                            borderColor: '#f1c40f', // Kuning
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 2,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'TKP',
+                            data: scoresTKP,
+                            borderColor: '#27ae60', // Hijau
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 2,
+                            tension: 0.1
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: false, min: 0 }
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    }
+                    interaction: { mode: 'index', intersect: false }, // Biar kalau hover, muncul semua nilai
+                    scales: { y: { beginAtZero: false } },
+                    plugins: { legend: { position: 'bottom' } }
                 }
             });
         }
@@ -238,17 +249,11 @@
         function masukUjian() {
             document.getElementById('lobby-screen').style.display = 'none';
             document.getElementById('exam-wrapper').style.display = 'block';
-            
-            // Cek apakah timer resume atau baru
             const savedTarget = localStorage.getItem('cpns_target_time');
-            if (savedTarget) {
-                runTimer(savedTarget);
-            } else {
-                mulaiTimer();
-            }
+            if (savedTarget) { runTimer(savedTarget); } else { mulaiTimer(); }
         }
 
-        // === 2. LOGIC UJIAN ===
+        // --- EXAM LOGIC ---
         function createQuestions(start, end, containerId) {
             const container = document.getElementById(containerId);
             const mapGrid = document.getElementById('map-grid');
@@ -262,7 +267,6 @@
                              <label for="q${i}${opt}">${opt}</label>`;
                 });
                 html += `</div></div>`;
-                
                 const mapBtn = document.createElement('div');
                 mapBtn.className = 'map-item'; mapBtn.id = `map-${i}`; mapBtn.innerText = i;
                 mapBtn.onclick = function() { scrollToQuestion(i); };
@@ -365,7 +369,6 @@
                  if (salahTIU.length > 0) laporanEvaluasi += `TIU (Salah ${salahTIU.length}):\n` + salahTIU.map(w => `- No.${w.no}: Jawab ${w.user} (Kunci ${w.key})`).join('\n');
             } else { laporanEvaluasi = "PERFECT!"; }
 
-            // Kirim ke Excel (POST)
             if(scriptURL) {
                 const btn = document.querySelector('#secret-area button.btn-main');
                 const oriText = btn.innerText; btn.innerText = "Mengirim..."; btn.disabled = true;
@@ -374,13 +377,10 @@
                 fd.append('Nilai TWK', sTWK); fd.append('Nilai TIU', sTIU); 
                 fd.append('Nilai TKP', sTKP); fd.append('TOTAL', total);
                 fd.append('Evaluasi', laporanEvaluasi); 
-                
                 fetch(scriptURL, { method: 'POST', body: fd })
-                    .then(r => { alert(`Tersimpan! Silakan kembali ke Lobby untuk lihat grafik.`); btn.innerText = oriText; btn.disabled = false; })
+                    .then(r => { alert(`Tersimpan!`); btn.innerText = oriText; btn.disabled = false; })
                     .catch(e => { alert('Gagal.'); btn.innerText = oriText; btn.disabled = false; });
             }
-            
-            // Bersihkan Jawaban Lokal biar pas ujian baru kosong
             Object.keys(localStorage).forEach(key => { if(key.startsWith('cpns_')) localStorage.removeItem(key); });
         }
     </script>
