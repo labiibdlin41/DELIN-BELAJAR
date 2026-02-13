@@ -26,30 +26,54 @@
 
         .container { max-width: 700px; margin: 0 auto 40px auto; padding: 20px; }
 
-        /* SOAL & OPSI */
+        /* SOAL & OPSI (YANG DIPERBAIKI) */
         .section-header { background: #34495e; color: #fff; padding: 12px 20px; border-radius: 8px; margin-top: 30px; font-weight: bold; font-size: 1.1em; }
-        .question-row { display: flex; align-items: center; background: #fff; margin-bottom: 10px; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .q-num { width: 40px; font-weight: bold; color: #555; font-size: 1.1em; }
-        .options { display: flex; gap: 10px; flex-grow: 1; justify-content: space-between; }
+        
+        .question-row { 
+            display: flex; 
+            align-items: center; /* Vertikal tengah */
+            background: #fff; 
+            margin-bottom: 10px; 
+            padding: 10px 15px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+        }
+        
+        .q-num { 
+            width: 35px; /* Lebar nomor fix */
+            font-weight: bold; 
+            color: #555; 
+            font-size: 1.1em;
+            flex-shrink: 0; /* Biar nomor gak gepeng */
+        }
+        
+        .options { 
+            display: flex; 
+            gap: 12px; /* Jarak antar tombol dikit aja biar rapi */
+            flex-wrap: wrap; /* Kalau layar kecil banget, dia turun */
+            justify-content: flex-start; /* KUNCI: Biar nempel kiri, gak nyebar */
+        }
         
         input[type="radio"] { display: none; }
         
-        /* FIX: Cuma label di dalam options yang jadi tombol bulat */
+        /* Tombol Bulat */
         .options label { 
             display: flex; align-items: center; justify-content: center;
-            width: 45px; height: 45px; border-radius: 50%; 
-            background: #e9ecef; color: #555; font-weight: bold; font-size: 16px;
-            cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+            width: 42px; height: 42px; border-radius: 50%; 
+            background: #f1f3f5; color: #555; font-weight: bold; font-size: 15px;
+            cursor: pointer; transition: all 0.2s; border: 1px solid #dee2e6;
         }
-        input[type="radio"]:checked + label { background: #007bff; color: white; border-color: #0056b3; transform: scale(1.1); }
+        /* Efek Hover & Klik */
+        input[type="radio"]:checked + label { 
+            background: #007bff; color: white; border-color: #0056b3; 
+            transform: scale(1.05); box-shadow: 0 2px 5px rgba(0,123,255,0.3);
+        }
         
         .correct { background-color: #d4edda !important; border-left: 6px solid #28a745; }
         .wrong { background-color: #f8d7da !important; border-left: 6px solid #dc3545; }
 
-        /* AREA KUNCI & HASIL */
+        /* AREA KUNCI */
         #secret-area { display: none; margin-top: 30px; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        
-        /* FIX: Label di area kunci jadi normal (teks biasa) */
         #secret-area label { 
             display: block; width: 100%; text-align: left; 
             font-weight: bold; margin-bottom: 8px; color: #2c3e50; font-size: 1em;
