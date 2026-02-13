@@ -3,139 +3,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Simulasi CAT CPNS (Clean Mode)</title>
+    <title>CAT CPNS PRO (Dashboard)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; color: #333; padding-top: 80px; padding-bottom: 50px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 0; color: #333; }
+        
+        /* === DASHBOARD / LOBBY STYLE === */
+        #lobby-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 2000; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
+            overflow-y: auto;
+        }
+        .dashboard-card {
+            background: white; width: 100%; max-width: 600px;
+            padding: 20px; border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;
+        }
+        .chart-container { position: relative; height: 300px; width: 100%; margin: 20px 0; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-item { background: #f8f9fa; padding: 10px; border-radius: 10px; border: 1px solid #eee; }
+        .stat-val { font-size: 1.5em; font-weight: bold; color: #2c3e50; }
+        .stat-label { font-size: 0.8em; color: #7f8c8d; }
+        
+        .btn-start-big {
+            background: linear-gradient(135deg, #2980b9, #2c3e50); color: white;
+            border: none; padding: 15px 40px; font-size: 1.2em; font-weight: bold;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(41, 128, 185, 0.4);
+            transition: transform 0.2s; width: 100%;
+        }
+        .btn-start-big:hover { transform: scale(1.02); }
+
+        /* === UJIAN STYLE (Hidden awalnya) === */
+        #exam-wrapper { display: none; padding-top: 80px; padding-bottom: 80px; }
         
         #timer-bar {
             position: fixed; top: 0; left: 0; width: 100%;
-            background: #2c3e50; color: #fff;
-            padding: 10px 0; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000;
-            height: 60px;
+            background: linear-gradient(90deg, #2c3e50, #34495e); color: #fff;
+            padding: 0 20px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; height: 70px; box-sizing: border-box;
         }
-        .timer-content { display: flex; align-items: center; gap: 15px; }
-        #time-text { font-size: 1.5em; font-weight: bold; letter-spacing: 2px; font-family: monospace; }
-        #btn-start-timer {
-            background: #27ae60; color: white; border: none; padding: 8px 20px;
-            font-size: 1em; font-weight: bold; border-radius: 20px; cursor: pointer;
-            box-shadow: 0 4px 0 #1e8449; transition: transform 0.1s; display: block;
+        .timer-content { display: flex; align-items: center; gap: 15px; font-weight: bold; font-size: 1.4em; letter-spacing: 1px; font-family: monospace; }
+        
+        /* Drawer & Map */
+        .btn-map-toggle {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;
+            padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9em; display: flex; align-items: center; gap: 5px;
         }
-        #btn-start-timer:active { transform: translateY(4px); box-shadow: none; }
+        #nav-drawer {
+            position: fixed; top: 70px; right: -320px; width: 300px; height: calc(100% - 70px);
+            background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: right 0.3s ease; z-index: 999; overflow-y: auto; padding: 20px;
+        }
+        #nav-drawer.open { right: 0; }
+        .map-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .map-item {
+            height: 40px; display: flex; align-items: center; justify-content: center;
+            background: #ecf0f1; border-radius: 6px; font-size: 0.8em; font-weight: bold; color: #7f8c8d;
+            cursor: pointer; border: 1px solid #bdc3c7;
+        }
+        .map-item.filled { background: #27ae60; color: white; border-color: #2ecc71; }
 
-        .container { max-width: 700px; margin: 0 auto 40px auto; padding: 20px; }
-        .section-header { background: #34495e; color: #fff; padding: 12px 20px; border-radius: 8px; margin-top: 30px; font-weight: bold; font-size: 1.1em; }
-        .question-row { display: flex; align-items: center; background: #fff; margin-bottom: 10px; padding: 12px 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .q-num { width: 30px; font-weight: bold; color: #555; font-size: 1.1em; flex-shrink: 0; margin-right: 10px; }
-        .options { flex-grow: 1; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+        .section-header { background: #34495e; color: #fff; padding: 12px 20px; border-radius: 8px; margin-top: 30px; font-weight: bold; font-size: 1.1em; border-left: 5px solid #f1c40f; }
+        .question-row { display: flex; flex-direction: column; background: #fff; margin-bottom: 15px; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #eee; }
+        .q-header { display: flex; margin-bottom: 15px; font-weight: bold; color: #2c3e50; }
+        .q-num { margin-right: 10px; min-width: 30px; }
+        .options { display: flex; gap: 10px; flex-wrap: wrap; }
         input[type="radio"] { display: none; }
         .options label { 
             display: flex; align-items: center; justify-content: center;
-            width: 45px; height: 45px; border-radius: 50%; 
+            width: 45px; height: 45px; border-radius: 12px; 
             background: #f8f9fa; color: #555; font-weight: bold; font-size: 16px;
             cursor: pointer; transition: all 0.2s; border: 2px solid #e9ecef;
         }
-        input[type="radio"]:checked + label { background: #007bff; color: white; border-color: #007bff; transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,123,255,0.3); }
-        .correct { background-color: #d4edda !important; border-left: 6px solid #28a745; }
-        .wrong { background-color: #f8d7da !important; border-left: 6px solid #dc3545; }
+        input[type="radio"]:checked + label { background: #3498db; color: white; border-color: #2980b9; transform: translateY(-3px); box-shadow: 0 5px 10px rgba(52, 152, 219, 0.4); }
+        .correct { background-color: #d4edda !important; border-left: 5px solid #28a745; }
+        .wrong { background-color: #f8d7da !important; border-left: 5px solid #dc3545; }
 
         #secret-area { display: none; margin-top: 30px; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        #secret-area label { display: block; width: 100%; text-align: left; font-weight: bold; margin-bottom: 8px; color: #2c3e50; font-size: 1em; }
-        .key-input { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; letter-spacing: 5px; font-size: 1.2em; text-transform: uppercase; box-sizing: border-box; }
-        .score-box { text-align: center; background: #2c3e50; color: white; padding: 20px; border-radius: 10px; margin-top: 20px; }
-        .btn-main { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-reset { background: #c0392b; margin-top: 20px; border-bottom: 5px solid #922b21; }
+        .btn-main { width: 100%; padding: 15px; background: #2980b9; color: white; border: none; border-radius: 10px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .sticky-footer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; z-index: 900; }
+        .key-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; letter-spacing: 3px; font-size: 1.1em; box-sizing: border-box; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="timer-bar">
-        <div class="timer-content">
-            <span id="time-text">01:40:00</span>
-            <button id="btn-start-timer" onclick="mulaiTimer()">▶ MULAI</button>
+    <div id="lobby-screen">
+        <div class="dashboard-card">
+            <h2 style="color:#2c3e50; margin-bottom:5px;">Statistik Pejuang ASN</h2>
+            <p style="color:#7f8c8d; font-size:0.9em;">Pantau progress belajarmu di sini</p>
+            
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <div class="stat-val" id="stat-high">-</div>
+                    <div class="stat-label">Tertinggi</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="stat-count">-</div>
+                    <div class="stat-label">Total Tryout</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="scoreChart"></canvas>
+            </div>
+            <p id="loading-text" style="color:#e67e22; font-size:0.9em; font-style:italic;">⏳ Sedang mengambil data dari Excel...</p>
+
+            <button class="btn-start-big" onclick="masukUjian()">🔥 MULAI UJIAN BARU</button>
         </div>
     </div>
 
-    <div class="container">
-        <div id="exam-interface">
-            <form id="ljkForm">
-                <div class="section-header">TWK (Nasionalisme - No 1-30)</div>
-                <div id="twk-container"></div>
-                <div class="section-header">TIU (Logika - No 31-65)</div>
-                <div id="tiu-container"></div>
-                <div class="section-header">TKP (Kepribadian - No 66-110)</div>
-                <div id="tkp-container"></div>
-            </form>
-            <div class="sticky-footer">
-                <button type="button" class="btn-main" style="background: #27ae60; box-shadow: 0 4px 0 #1e8449;" onclick="bukaAreaKunci()">SELESAI & INPUT KUNCI</button>
+    <div id="exam-wrapper">
+        <div id="timer-bar">
+            <div class="timer-content">
+                <span id="time-text">01:40:00</span>
             </div>
+            <button class="btn-map-toggle" onclick="toggleMap()"><span>🔢 Peta Soal</span></button>
         </div>
 
-        <div id="secret-area">
-            <h3 style="text-align:center; color:#2c3e50; margin-bottom:20px;">Input Kunci Jawaban</h3>
-            <label>Kunci TWK (30 Huruf):</label>
-            <input type="text" id="keyTWK" class="key-input" placeholder="ABCD..." maxlength="30">
-            <label>Kunci TIU (35 Huruf):</label>
-            <input type="text" id="keyTIU" class="key-input" placeholder="ABCD..." maxlength="35">
-            <label>Skor Manual TKP (Angka):</label>
-            <input type="number" id="manualTKP" class="key-input" placeholder="Contoh: 145" style="letter-spacing: normal;">
-            <button type="button" class="btn-main" onclick="calculateScore()">HITUNG SKOR & KIRIM KE EXCEL</button>
+        <div id="nav-drawer">
+            <h3 style="margin-top:0;">Navigasi Soal</h3>
+            <div class="map-grid" id="map-grid"></div>
+        </div>
 
-            <div id="result-display" style="display:none;">
-                <div class="score-box">
-                    <div style="display:flex; justify-content:space-around; margin-bottom:10px; font-size:0.9em;">
-                        <span>TWK: <b id="res-twk">0</b></span>
-                        <span>TIU: <b id="res-tiu">0</b></span>
-                        <span>TKP: <b id="res-tkp">0</b></span>
-                    </div>
-                    <h1 style="margin:0; font-size:3em;" id="res-total">0</h1>
-                    <small>TOTAL SKD</small>
+        <div class="container" onclick="closeMapOutside()">
+            <div id="exam-interface">
+                <form id="ljkForm">
+                    <div class="section-header">TWK (Nasionalisme - No 1-30)</div><div id="twk-container"></div>
+                    <div class="section-header">TIU (Logika - No 31-65)</div><div id="tiu-container"></div>
+                    <div class="section-header">TKP (Kepribadian - No 66-110)</div><div id="tkp-container"></div>
+                </form>
+                <div class="sticky-footer">
+                    <button type="button" class="btn-main" style="background: #27ae60;" onclick="bukaAreaKunci()">SELESAI & INPUT KUNCI</button>
                 </div>
-                <button type="button" class="btn-main btn-reset" onclick="resetForm()">⚠ RESET & KERJAKAN ULANG</button>
+            </div>
+
+            <div id="secret-area">
+                <h3 style="text-align:center; color:#2c3e50;">Input Kunci Jawaban</h3>
+                <label>Kunci TWK:</label> <input type="text" id="keyTWK" class="key-input" maxlength="30">
+                <label>Kunci TIU:</label> <input type="text" id="keyTIU" class="key-input" maxlength="35">
+                <label>Skor Manual TKP:</label> <input type="number" id="manualTKP" class="key-input">
+                <button type="button" class="btn-main" onclick="calculateScore()">HITUNG SKOR & KIRIM</button>
+
+                <div id="result-display" style="display:none; text-align:center; margin-top:20px;">
+                    <div style="background:#2c3e50; color:white; padding:15px; border-radius:10px;">
+                        <h1 style="font-size:3em; margin:10px 0;" id="res-total">0</h1>
+                        <small>Total Skor SKD</small>
+                    </div>
+                    <button type="button" class="btn-main" style="background:#c0392b; margin-top:15px;" onclick="window.location.reload()">🏠 KEMBALI KE LOBBY</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         // --- PASTE URL GOOGLE APPS SCRIPT DI SINI ---
-        const scriptURL = 'https://script.google.com/macros/s/AKfycby58zrFnAov9TAcuBlK1NHnSbAHqMRxIzyfpwVFQhwkzl_D6tabiPSaX64Kklb5YQPv8g/exec'; 
+        const scriptURL = ''; 
         // --------------------------------------------
 
         const EXAM_DURATION_MINUTES = 100;
         let timerInterval;
 
+        // === 1. LOGIC DASHBOARD & GRAFIK ===
+        window.onload = function() {
+            createQuestions(1, 30, 'twk-container');
+            createQuestions(31, 65, 'tiu-container');
+            createQuestions(66, 110, 'tkp-container');
+            restoreAnswers();
+            
+            // Tarik Data Grafik
+            if(scriptURL) {
+                fetch(scriptURL)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loading-text').style.display = 'none';
+                    renderChart(data);
+                })
+                .catch(error => {
+                    document.getElementById('loading-text').innerText = "Gagal mengambil data Excel.";
+                    console.error('Error:', error);
+                });
+            } else {
+                document.getElementById('loading-text').innerText = "URL Script belum dipasang.";
+            }
+        };
+
+        function renderChart(data) {
+            // Data dari Excel: Array of Objects { label: "...", score: ... }
+            const labels = data.map(item => item.label.toString().substring(0, 10)); // Ambil 10 huruf awal (Tanggal)
+            const scores = data.map(item => item.score);
+            
+            // Hitung Statistik
+            const maxScore = Math.max(...scores);
+            const totalTryout = scores.length;
+            
+            if(totalTryout > 0) {
+                document.getElementById('stat-high').innerText = maxScore;
+                document.getElementById('stat-count').innerText = totalTryout;
+            }
+
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Skor Total SKD',
+                        data: scores,
+                        borderColor: '#2980b9',
+                        backgroundColor: 'rgba(41, 128, 185, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#e74c3c',
+                        pointRadius: 5,
+                        fill: true,
+                        tension: 0.3 // Biar garisnya melengkung halus
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: false, min: 0 }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function masukUjian() {
+            document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('exam-wrapper').style.display = 'block';
+            
+            // Cek apakah timer resume atau baru
+            const savedTarget = localStorage.getItem('cpns_target_time');
+            if (savedTarget) {
+                runTimer(savedTarget);
+            } else {
+                mulaiTimer();
+            }
+        }
+
+        // === 2. LOGIC UJIAN ===
         function createQuestions(start, end, containerId) {
             const container = document.getElementById(containerId);
+            const mapGrid = document.getElementById('map-grid');
             let html = '';
             for (let i = start; i <= end; i++) {
-                html += `<div class="question-row" id="row-${i}"><div class="q-num">${i}.</div><div class="options">`;
+                html += `<div class="question-row" id="row-${i}">
+                    <div class="q-header"><div class="q-num">${i}.</div><div>Soal Nomor ${i}</div></div>
+                    <div class="options">`;
                 ['A', 'B', 'C', 'D', 'E'].forEach(opt => {
                     html += `<input type="radio" name="q${i}" id="q${i}${opt}" value="${opt}" onchange="saveAnswer(${i}, '${opt}')">
                              <label for="q${i}${opt}">${opt}</label>`;
                 });
                 html += `</div></div>`;
+                
+                const mapBtn = document.createElement('div');
+                mapBtn.className = 'map-item'; mapBtn.id = `map-${i}`; mapBtn.innerText = i;
+                mapBtn.onclick = function() { scrollToQuestion(i); };
+                mapGrid.appendChild(mapBtn);
             }
             container.innerHTML = html;
         }
-        createQuestions(1, 30, 'twk-container');
-        createQuestions(31, 65, 'tiu-container');
-        createQuestions(66, 110, 'tkp-container');
 
-        window.onload = function() {
-            restoreAnswers();
-            const savedTarget = localStorage.getItem('cpns_target_time');
-            if (savedTarget) {
-                document.getElementById('btn-start-timer').style.display = 'none';
-                runTimer(savedTarget);
+        function toggleMap() { document.getElementById('nav-drawer').classList.toggle('open'); }
+        function closeMapOutside() { document.getElementById('nav-drawer').classList.remove('open'); }
+        function scrollToQuestion(num) {
+            document.getElementById('nav-drawer').classList.remove('open');
+            document.getElementById(`row-${num}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        function saveAnswer(n, val) { 
+            localStorage.setItem('cpns_q' + n, val);
+            document.getElementById(`map-${n}`).classList.add('filled');
+        }
+        function restoreAnswers() {
+            for (let i = 1; i <= 110; i++) {
+                const saved = localStorage.getItem('cpns_q' + i);
+                if (saved) { 
+                    const el = document.getElementById('q' + i + saved); if(el) el.checked = true; 
+                    const mapEl = document.getElementById(`map-${i}`); if(mapEl) mapEl.classList.add('filled');
+                }
             }
-        };
+            if(localStorage.getItem('keyTWK')) document.getElementById('keyTWK').value = localStorage.getItem('keyTWK');
+            if(localStorage.getItem('keyTIU')) document.getElementById('keyTIU').value = localStorage.getItem('keyTIU');
+            if(localStorage.getItem('manualTKP')) document.getElementById('manualTKP').value = localStorage.getItem('manualTKP');
+        }
 
         function mulaiTimer() {
             const now = new Date().getTime();
             const targetTime = now + (EXAM_DURATION_MINUTES * 60 * 1000);
             localStorage.setItem('cpns_target_time', targetTime);
-            document.getElementById('btn-start-timer').style.display = 'none';
             runTimer(targetTime);
         }
 
@@ -146,33 +308,14 @@
                 if (distance < 0) {
                     clearInterval(timerInterval);
                     document.getElementById("time-text").innerText = "00:00:00";
-                    document.getElementById("timer-bar").style.background = "#c0392b";
-                    alert("WAKTU HABIS!");
-                    bukaAreaKunci();
-                    return;
+                    alert("WAKTU HABIS!"); bukaAreaKunci(); return;
                 }
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                document.getElementById("time-text").innerText = `${hours < 10 ? "0" + hours : hours}:${minutes < 10 ? "0" + minutes : minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
-                if (distance < 5 * 60 * 1000) document.getElementById("timer-bar").style.background = "#c0392b";
+                const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((distance % (1000 * 60)) / 1000);
+                document.getElementById("time-text").innerText = `${h<10?'0'+h:h}:${m<10?'0'+m:m}:${s<10?'0'+s:s}`;
             }, 1000);
         }
-
-        function restoreAnswers() {
-            for (let i = 1; i <= 110; i++) {
-                const saved = localStorage.getItem('cpns_q' + i);
-                if (saved) { const el = document.getElementById('q' + i + saved); if (el) el.checked = true; }
-            }
-            if(localStorage.getItem('keyTWK')) document.getElementById('keyTWK').value = localStorage.getItem('keyTWK');
-            if(localStorage.getItem('keyTIU')) document.getElementById('keyTIU').value = localStorage.getItem('keyTIU');
-            if(localStorage.getItem('manualTKP')) document.getElementById('manualTKP').value = localStorage.getItem('manualTKP');
-        }
-
-        function saveAnswer(n, val) { localStorage.setItem('cpns_q' + n, val); }
-        document.getElementById('keyTWK').addEventListener('input', function() { localStorage.setItem('keyTWK', this.value); });
-        document.getElementById('keyTIU').addEventListener('input', function() { localStorage.setItem('keyTIU', this.value); });
-        document.getElementById('manualTKP').addEventListener('input', function() { localStorage.setItem('manualTKP', this.value); });
 
         function bukaAreaKunci() {
             clearInterval(timerInterval);
@@ -181,9 +324,7 @@
             document.querySelector('.sticky-footer').style.display = 'none';
             document.getElementById('secret-area').style.display = 'block';
             window.scrollTo(0, document.body.scrollHeight);
-            document.getElementById("timer-bar").style.background = "#27ae60"; 
             document.getElementById("time-text").innerHTML = "SELESAI"; 
-            document.getElementById('btn-start-timer').style.display = 'none';
         }
 
         function calculateScore() {
@@ -195,7 +336,6 @@
 
             document.querySelectorAll('.question-row').forEach(r => r.classList.remove('correct', 'wrong'));
 
-            // Logic Hitung
             for (let i = 1; i <= 30; i++) {
                 const userAns = document.querySelector(`input[name="q${i}"]:checked`);
                 const keyAns = kTWK[i-1]; const row = document.getElementById(`row-${i}`);
@@ -214,53 +354,34 @@
             }
 
             const total = sTWK + sTIU + sTKP;
-            document.getElementById('res-twk').innerText = sTWK;
-            document.getElementById('res-tiu').innerText = sTIU;
-            document.getElementById('res-tkp').innerText = sTKP;
             document.getElementById('res-total').innerText = total;
             document.getElementById('result-display').style.display = 'block';
 
-            // --- KIRIM KE EXCEL (2 SHEET) ---
             let laporanEvaluasi = "";
-            if (wrongLog.length === 0) {
-                laporanEvaluasi = "PERFECT! Tidak ada salah di TWK & TIU.";
-            } else {
-                const salahTWK = wrongLog.filter(w => w.type === 'TWK');
-                const salahTIU = wrongLog.filter(w => w.type === 'TIU');
-                if (salahTWK.length > 0) {
-                    laporanEvaluasi += `TWK (Salah ${salahTWK.length}):\n` + salahTWK.map(w => `- No.${w.no}: Jawab ${w.user} (Kunci ${w.key})`).join('\n') + `\n\n`;
-                }
-                if (salahTIU.length > 0) {
-                    laporanEvaluasi += `TIU (Salah ${salahTIU.length}):\n` + salahTIU.map(w => `- No.${w.no}: Jawab ${w.user} (Kunci ${w.key})`).join('\n');
-                }
-            }
+            if (wrongLog.length > 0) {
+                 const salahTWK = wrongLog.filter(w => w.type === 'TWK');
+                 const salahTIU = wrongLog.filter(w => w.type === 'TIU');
+                 if (salahTWK.length > 0) laporanEvaluasi += `TWK (Salah ${salahTWK.length}):\n` + salahTWK.map(w => `- No.${w.no}: Jawab ${w.user} (Kunci ${w.key})`).join('\n') + `\n\n`;
+                 if (salahTIU.length > 0) laporanEvaluasi += `TIU (Salah ${salahTIU.length}):\n` + salahTIU.map(w => `- No.${w.no}: Jawab ${w.user} (Kunci ${w.key})`).join('\n');
+            } else { laporanEvaluasi = "PERFECT!"; }
 
+            // Kirim ke Excel (POST)
             if(scriptURL) {
                 const btn = document.querySelector('#secret-area button.btn-main');
-                const oriText = btn.innerText;
-                btn.innerText = "Mengirim ke Excel..."; btn.disabled = true;
-                
-                let sisaWaktuKirim = localStorage.getItem('cpns_last_time') || "Waktu Habis";
-
+                const oriText = btn.innerText; btn.innerText = "Mengirim..."; btn.disabled = true;
                 const fd = new FormData();
-                fd.append('Waktu', sisaWaktuKirim); 
-                fd.append('Nilai TWK', sTWK); 
-                fd.append('Nilai TIU', sTIU); 
-                fd.append('Nilai TKP', sTKP); 
-                fd.append('TOTAL', total);
+                fd.append('Waktu', localStorage.getItem('cpns_last_time') || "-"); 
+                fd.append('Nilai TWK', sTWK); fd.append('Nilai TIU', sTIU); 
+                fd.append('Nilai TKP', sTKP); fd.append('TOTAL', total);
                 fd.append('Evaluasi', laporanEvaluasi); 
                 
                 fetch(scriptURL, { method: 'POST', body: fd })
-                    .then(r => { alert(`Data Tersimpan di Excel!`); btn.innerText = oriText; btn.disabled = false; })
-                    .catch(e => { alert('Gagal koneksi Excel.'); btn.innerText = oriText; btn.disabled = false; });
+                    .then(r => { alert(`Tersimpan! Silakan kembali ke Lobby untuk lihat grafik.`); btn.innerText = oriText; btn.disabled = false; })
+                    .catch(e => { alert('Gagal.'); btn.innerText = oriText; btn.disabled = false; });
             }
-        }
-
-        function resetForm() {
-            if(confirm('Yakin mau RESET? Waktu akan ulang, jawaban dihapus.')) {
-                Object.keys(localStorage).forEach(key => { if(key.startsWith('cpns_q') || key === 'cpns_target_time' || key === 'cpns_last_time') localStorage.removeItem(key); });
-                window.location.reload();
-            }
+            
+            // Bersihkan Jawaban Lokal biar pas ujian baru kosong
+            Object.keys(localStorage).forEach(key => { if(key.startsWith('cpns_')) localStorage.removeItem(key); });
         }
     </script>
 </body>
