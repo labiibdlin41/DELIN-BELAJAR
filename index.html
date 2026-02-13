@@ -26,47 +26,49 @@
 
         .container { max-width: 700px; margin: 0 auto 40px auto; padding: 20px; }
 
-        /* SOAL & OPSI (YANG DIPERBAIKI) */
+        /* SOAL & OPSI (BAGIAN INI YANG DIUBAH TOTAL) */
         .section-header { background: #34495e; color: #fff; padding: 12px 20px; border-radius: 8px; margin-top: 30px; font-weight: bold; font-size: 1.1em; }
         
         .question-row { 
             display: flex; 
-            align-items: center; /* Vertikal tengah */
+            align-items: center; 
             background: #fff; 
             margin-bottom: 10px; 
-            padding: 10px 15px; 
-            border-radius: 10px; 
+            padding: 12px 15px; /* Padding atas bawah pas */
+            border-radius: 12px; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
         }
         
         .q-num { 
-            width: 35px; /* Lebar nomor fix */
+            width: 30px; /* Lebar nomor fix */
             font-weight: bold; 
             color: #555; 
             font-size: 1.1em;
-            flex-shrink: 0; /* Biar nomor gak gepeng */
+            flex-shrink: 0; /* Biar nomor gak kegencet */
+            margin-right: 10px; /* Jarak dikit dari nomor ke area tombol */
         }
         
         .options { 
+            flex-grow: 1; /* KUNCI: Ambil semua sisa tempat kosong */
             display: flex; 
-            gap: 12px; /* Jarak antar tombol dikit aja biar rapi */
-            flex-wrap: wrap; /* Kalau layar kecil banget, dia turun */
-            justify-content: flex-start; /* KUNCI: Biar nempel kiri, gak nyebar */
+            justify-content: center; /* KUNCI: Tengahkan tombol di sisa tempat itu */
+            gap: 15px; /* Jarak antar tombol A B C D E */
+            flex-wrap: wrap; /* Kalau layar kekecilan dia turun rapi */
         }
         
         input[type="radio"] { display: none; }
         
-        /* Tombol Bulat */
+        /* Desain Tombol Bulat */
         .options label { 
             display: flex; align-items: center; justify-content: center;
-            width: 42px; height: 42px; border-radius: 50%; 
-            background: #f1f3f5; color: #555; font-weight: bold; font-size: 15px;
-            cursor: pointer; transition: all 0.2s; border: 1px solid #dee2e6;
+            width: 45px; height: 45px; border-radius: 50%; 
+            background: #f8f9fa; color: #555; font-weight: bold; font-size: 16px;
+            cursor: pointer; transition: all 0.2s; border: 2px solid #e9ecef;
         }
         /* Efek Hover & Klik */
         input[type="radio"]:checked + label { 
-            background: #007bff; color: white; border-color: #0056b3; 
-            transform: scale(1.05); box-shadow: 0 2px 5px rgba(0,123,255,0.3);
+            background: #007bff; color: white; border-color: #007bff; 
+            transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,123,255,0.3);
         }
         
         .correct { background-color: #d4edda !important; border-left: 6px solid #28a745; }
