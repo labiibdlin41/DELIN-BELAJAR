@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LJK Digital CPNS - Mode Fokus</title>
+    <title>LJK Digital CPNS - Mode Praktis</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f6f8; padding: 20px; max-width: 600px; margin: 0 auto; color: #333; }
         h2 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
@@ -15,7 +15,6 @@
         .q-num { width: 40px; font-weight: bold; color: #555; }
         .options { display: flex; gap: 8px; flex-grow: 1; justify-content: space-around; }
         
-        /* Radio Button Desain Tombol */
         input[type="radio"] { display: none; }
         label { 
             display: inline-block; width: 40px; height: 40px; line-height: 40px; 
@@ -24,85 +23,77 @@
         }
         input[type="radio"]:checked + label { background: #2980b9; color: white; transform: scale(1.1); box-shadow: 0 2px 5px rgba(41, 128, 185, 0.4); }
         
-        /* Warna Koreksi */
         .correct { background-color: #d4edda !important; border-left: 5px solid #28a745; }
-        .wrong { background-color: #fff3cd !important; border-left: 5px solid #ffc107; } /* Kuning buat TKP beda opsi */
-        .wrong-tiu { background-color: #f8d7da !important; border-left: 5px solid #dc3545; } /* Merah buat TIU/TWK salah */
+        .wrong { background-color: #f8d7da !important; border-left: 5px solid #dc3545; }
 
-        /* Area Rahasia */
-        #secret-area { display: none; margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 20px; animation: fadeIn 0.5s; }
+        #secret-area { display: none; margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 20px; animation: fadeIn 0.5s; background: #fff; padding: 20px; border-radius: 10px; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .score-card { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .score-box { background: white; padding: 15px; text-align: center; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .score-box small { display: block; color: #888; font-size: 0.8em; margin-bottom: 5px; }
-        .score-box strong { font-size: 1.5em; color: #2c3e50; }
-        
-        textarea { width: 100%; height: 80px; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; letter-spacing: 2px; }
+        .key-input-group { margin-bottom: 15px; }
+        .key-input-group label { display: block; width: 100%; text-align: left; background: none; color: #333; font-weight: bold; height: auto; margin-bottom: 5px; border-radius: 0; }
+        .key-input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-family: monospace; letter-spacing: 3px; text-transform: uppercase; font-size: 1.1em; }
+        .score-input { width: 100px; padding: 10px; border: 2px solid #2980b9; border-radius: 6px; font-weight: bold; font-size: 1.2em; text-align: center; }
+
+        .score-display { text-align: center; margin-top: 20px; padding: 15px; background: #2c3e50; color: white; border-radius: 8px; }
         
         .btn-main { display: block; width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn-check { background: #2980b9; margin-top: 10px; }
-        
         .sticky-footer { position: sticky; bottom: 20px; z-index: 100; }
     </style>
 </head>
 <body>
 
     <h2>LJK Digital CPNS</h2>
-    <div class="subtitle">Fokus kerjakan dulu. Kunci jawaban diinput di akhir.</div>
+    <div class="subtitle">Kerjakan soal dulu. Hitung skor belakangan.</div>
 
     <form id="ljkForm">
-        <div class="section-header">TWK (1-30) - Nasinalisme & Pilar Negara</div>
+        <div class="section-header">TWK (1-30)</div>
         <div id="twk-container"></div>
 
-        <div class="section-header">TIU (31-65) - Logika & Hitungan</div>
+        <div class="section-header">TIU (31-65)</div>
         <div id="tiu-container"></div>
 
-        <div class="section-header">TKP (66-110) - Karakteristik Pribadi</div>
+        <div class="section-header">TKP (66-110)</div>
         <div id="tkp-container"></div>
     </form>
 
     <div class="sticky-footer">
-        <button type="button" class="btn-main" onclick="bukaAreaKunci()">Selesai Mengerjakan (Buka Kunci)</button>
+        <button type="button" class="btn-main" onclick="bukaAreaKunci()">Selesai & Input Kunci</button>
     </div>
 
     <div id="secret-area">
-        <h3>Input Kunci Jawaban</h3>
-        <p style="font-size:0.9em; color:#666;">Salin kunci jawaban dari buku (misal: BACCD...) tanpa spasi.</p>
-        <textarea id="answerKey" placeholder="Paste kunci jawaban di sini..."></textarea>
+        <h3 style="text-align:center;">Input Kunci Jawaban</h3>
         
-        <button type="button" class="btn-main btn-check" id="btn-hitung" onclick="calculateScore()">HITUNG SKOR</button>
+        <div class="key-input-group">
+            <label>Kunci TWK (30 Huruf):</label>
+            <input type="text" id="keyTWK" class="key-input" placeholder="ABCD..." maxlength="30">
+        </div>
 
-        <div id="result-display" style="display:none; margin-top:20px;">
-            <div class="score-card">
-                <div class="score-box">
-                    <small>TWK</small>
-                    <strong id="score-twk">0</strong>
-                </div>
-                <div class="score-box">
-                    <small>TIU</small>
-                    <strong id="score-tiu">0</strong>
-                </div>
-                <div class="score-box">
-                    <small>TKP (Est)</small>
-                    <strong id="score-tkp">0</strong>
-                </div>
+        <div class="key-input-group">
+            <label>Kunci TIU (35 Huruf):</label>
+            <input type="text" id="keyTIU" class="key-input" placeholder="ABCD..." maxlength="35">
+        </div>
+
+        <div class="key-input-group" style="background: #e8f6f3; padding: 15px; border-radius: 8px; border: 1px solid #d4efdf;">
+            <label style="color:#16a085;">Skor TKP Manual:</label>
+            <small style="display:block; margin-bottom:5px; color:#555;">Cek manual di buku, lalu tulis total poinmu di sini.</small>
+            <input type="number" id="manualTKP" class="score-input" placeholder="0">
+        </div>
+        
+        <button type="button" class="btn-main" style="background:#2980b9;" onclick="calculateScore()">HITUNG SKOR TOTAL</button>
+
+        <div id="result-display" style="display:none;">
+            <div class="score-display">
+                <p>TWK: <span id="res-twk">0</span> | TIU: <span id="res-tiu">0</span> | TKP: <span id="res-tkp">0</span></p>
+                <h1 style="margin:10px 0;">TOTAL: <span id="res-total">0</span></h1>
             </div>
-            <div style="text-align:center; background:#2c3e50; color:white; padding:15px; border-radius:8px;">
-                TOTAL SKD: <span id="total-score" style="font-size:1.5em; font-weight:bold;">0</span>
-            </div>
-            <p style="font-size:0.8em; text-align:center; color:#888; margin-top:10px;">
-                *Catatan TKP: Poin dihitung 5 jika sama persis dengan kunci. Jika beda, cek manual di buku (nilai 1-4).
-            </p>
-            <button type="button" style="background:#c0392b; color:white; border:none; padding:10px; border-radius:5px; margin-top:20px; width:100%;" onclick="resetForm()">Reset Semua</button>
+            <button type="button" style="background:#c0392b; color:white; border:none; padding:10px; border-radius:5px; margin-top:15px; width:100%; cursor:pointer;" onclick="resetForm()">Reset Ulang</button>
         </div>
     </div>
 
     <script>
-        // --- CONFIG ---
-        // Kalau mau pake Google Sheet, paste URL Apps Script di sini
+        // CONFIG SCRIPT (OPSIONAL)
         const scriptURL = ''; 
-        
+
         // 1. Generate Soal
         function createQuestions(start, end, containerId) {
             const container = document.getElementById(containerId);
@@ -118,21 +109,13 @@
                 container.innerHTML += html;
             }
         }
-
         createQuestions(1, 30, 'twk-container');
         createQuestions(31, 65, 'tiu-container');
         createQuestions(66, 110, 'tkp-container');
 
-        // 2. Logic Buka Tutup
-        function bukaAreaKunci() {
-            document.querySelector('.sticky-footer').style.display = 'none'; // Sembunyikan tombol selesai
-            document.getElementById('secret-area').style.display = 'block'; // Munculkan area kunci
-            window.scrollTo(0, document.body.scrollHeight);
-            alert("Silakan input kunci jawaban dari buku sekarang.");
-        }
-
-        // 3. LocalStorage (Simpan Otomatis)
+        // 2. LocalStorage (Simpan Otomatis Jawaban & Kunci)
         window.onload = function() {
+            // Load Jawaban Soal
             for (let i = 1; i <= 110; i++) {
                 const saved = localStorage.getItem('cpns_q' + i);
                 if (saved) {
@@ -140,65 +123,85 @@
                     if (el) el.checked = true;
                 }
             }
+            // Load Kunci yang pernah diketik (biar ga ilang pas refresh)
+            if(localStorage.getItem('keyTWK')) document.getElementById('keyTWK').value = localStorage.getItem('keyTWK');
+            if(localStorage.getItem('keyTIU')) document.getElementById('keyTIU').value = localStorage.getItem('keyTIU');
+            if(localStorage.getItem('manualTKP')) document.getElementById('manualTKP').value = localStorage.getItem('manualTKP');
         };
 
         function saveAnswer(n, val) {
             localStorage.setItem('cpns_q' + n, val);
         }
 
-        // 4. LOGIC SKORING YANG BEDA-BEDA
+        // Simpan Kunci saat diketik
+        document.getElementById('keyTWK').addEventListener('input', function() { localStorage.setItem('keyTWK', this.value); });
+        document.getElementById('keyTIU').addEventListener('input', function() { localStorage.setItem('keyTIU', this.value); });
+        document.getElementById('manualTKP').addEventListener('input', function() { localStorage.setItem('manualTKP', this.value); });
+
+        function bukaAreaKunci() {
+            document.querySelector('.sticky-footer').style.display = 'none';
+            document.getElementById('secret-area').style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        // 3. Logic Hitung Skor Terpisah
         function calculateScore() {
-            const keyRaw = document.getElementById('answerKey').value.toUpperCase().replace(/[^A-E]/g, '');
-            if (keyRaw.length < 110) {
-                alert(`Kunci jawaban kurang! Baru ${keyRaw.length} dari 110.`);
-                return;
-            }
+            // Ambil Kunci TWK
+            const kTWK = document.getElementById('keyTWK').value.toUpperCase().replace(/[^A-E]/g, '');
+            // Ambil Kunci TIU
+            const kTIU = document.getElementById('keyTIU').value.toUpperCase().replace(/[^A-E]/g, '');
+            // Ambil Nilai Manual TKP
+            const sTKP = parseInt(document.getElementById('manualTKP').value) || 0;
 
-            let sTWK = 0, sTIU = 0, sTKP = 0;
-            
-            // Reset Style
-            document.querySelectorAll('.question-row').forEach(r => r.className = 'question-row');
+            let sTWK = 0;
+            let sTIU = 0;
 
-            for (let i = 1; i <= 110; i++) {
+            // Reset Warna
+            document.querySelectorAll('.question-row').forEach(r => r.classList.remove('correct', 'wrong'));
+
+            // HITUNG TWK (1-30)
+            for (let i = 1; i <= 30; i++) {
                 const userAns = document.querySelector(`input[name="q${i}"]:checked`);
-                const keyAns = keyRaw[i-1];
+                const keyAns = kTWK[i-1]; 
                 const row = document.getElementById(`row-${i}`);
                 
-                if (userAns) {
-                    const val = userAns.value;
-                    
-                    // --- LOGIKA SKORING ---
-                    if (i <= 30) { 
-                        // TWK: Benar=5, Salah=0
-                        if (val === keyAns) { sTWK += 5; row.classList.add('correct'); }
-                        else { row.classList.add('wrong-tiu'); }
-                    } 
-                    else if (i <= 65) { 
-                        // TIU: Benar=5, Salah=0
-                        if (val === keyAns) { sTIU += 5; row.classList.add('correct'); }
-                        else { row.classList.add('wrong-tiu'); }
-                    } 
-                    else { 
-                        // TKP: Sama=5, Beda= ? (Tandai kuning)
-                        if (val === keyAns) { sTKP += 5; row.classList.add('correct'); }
-                        else { row.classList.add('wrong'); } // Kuning, ingatkan user cek manual
+                if (userAns && keyAns) {
+                    if (userAns.value === keyAns) {
+                        sTWK += 5;
+                        row.classList.add('correct');
+                    } else {
+                        row.classList.add('wrong');
                     }
                 }
             }
 
-            // Tampilkan
-            document.getElementById('score-twk').innerText = sTWK;
-            document.getElementById('score-tiu').innerText = sTIU;
-            document.getElementById('score-tkp').innerText = sTKP;
-            document.getElementById('total-score').innerText = sTWK + sTIU + sTKP;
-            document.getElementById('result-display').style.display = 'block';
+            // HITUNG TIU (31-65) - Index kunci dimulai dari 0, jadi i-31
+            for (let i = 31; i <= 65; i++) {
+                const userAns = document.querySelector(`input[name="q${i}"]:checked`);
+                const keyAns = kTIU[i-31]; // Hati-hati di sini, array kunci TIU mulai dari index 0
+                const row = document.getElementById(`row-${i}`);
+                
+                if (userAns && keyAns) {
+                    if (userAns.value === keyAns) {
+                        sTIU += 5;
+                        row.classList.add('correct');
+                    } else {
+                        row.classList.add('wrong');
+                    }
+                }
+            }
+
+            // Tampilkan Hasil
+            document.getElementById('res-twk').innerText = sTWK;
+            document.getElementById('res-tiu').innerText = sTIU;
+            document.getElementById('res-tkp').innerText = sTKP;
+            document.getElementById('res-total').innerText = sTWK + sTIU + sTKP;
             
-            // (Opsional: Kirim ke Google Sheet kalau sudah setup)
-            if (scriptURL) sendToSheet(sTWK, sTIU, sTKP);
+            document.getElementById('result-display').style.display = 'block';
         }
 
         function resetForm() {
-            if(confirm('Hapus semua jawaban dan mulai dari nol?')) {
+            if(confirm('Hapus semua jawaban & kunci?')) {
                 localStorage.clear();
                 location.reload();
             }
