@@ -36,4 +36,165 @@
         .key-input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-family: monospace; letter-spacing: 3px; text-transform: uppercase; font-size: 1.1em; }
         .score-input { width: 100px; padding: 10px; border: 2px solid #2980b9; border-radius: 6px; font-weight: bold; font-size: 1.2em; text-align: center; }
         .score-display { text-align: center; margin-top: 20px; padding: 15px; background: #2c3e50; color: white; border-radius: 8px; }
-        .btn-main { display: block; width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 1.1em;
+        .btn-main { display: block; width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .sticky-footer { position: sticky; bottom: 20px; z-index: 100; }
+    </style>
+</head>
+<body>
+
+    <div id="timer-bar">Waktu: <span id="time-left">Loading...</span></div>
+
+    <h2>LJK Digital CPNS</h2>
+    <div class="subtitle">Kerjakan soal dulu. Hitung skor belakangan.</div>
+
+    <form id="ljkForm">
+        <div class="section-header">TWK (1-30)</div>
+        <div id="twk-container"></div>
+        <div class="section-header">TIU (31-65)</div>
+        <div id="tiu-container"></div>
+        <div class="section-header">TKP (66-110)</div>
+        <div id="tkp-container"></div>
+    </form>
+
+    <div class="sticky-footer">
+        <button type="button" class="btn-main" onclick="bukaAreaKunci()">Selesai & Input Kunci</button>
+    </div>
+
+    <div id="secret-area">
+        <h3 style="text-align:center;">Input Kunci Jawaban</h3>
+        <div class="key-input-group">
+            <label>Kunci TWK (30 Huruf):</label>
+            <input type="text" id="keyTWK" class="key-input" placeholder="ABCD..." maxlength="30">
+        </div>
+        <div class="key-input-group">
+            <label>Kunci TIU (35 Huruf):</label>
+            <input type="text" id="keyTIU" class="key-input" placeholder="ABCD..." maxlength="35">
+        </div>
+        <div class="key-input-group" style="background: #e8f6f3; padding: 15px; border-radius: 8px; border: 1px solid #d4efdf;">
+            <label style="color:#16a085;">Skor TKP Manual:</label>
+            <input type="number" id="manualTKP" class="score-input" placeholder="0">
+        </div>
+        <button type="button" class="btn-main" style="background:#2980b9;" onclick="calculateScore()">HITUNG SKOR TOTAL</button>
+
+        <div id="result-display" style="display:none;">
+            <div class="score-display">
+                <p>TWK: <span id="res-twk">0</span> | TIU: <span id="res-tiu">0</span> | TKP: <span id="res-tkp">0</span></p>
+                <h1 style="margin:10px 0;">TOTAL: <span id="res-total">0</span></h1>
+            </div>
+            <button type="button" style="background:#c0392b; color:white; border:none; padding:10px; border-radius:5px; margin-top:15px; width:100%; cursor:pointer;" onclick="resetForm()">Reset Waktu & Jawaban</button>
+        </div>
+    </div>
+
+    <script>
+        // --- TEMPEL URL DI ANTARA TANDA KUTIP INI ---
+        const scriptURL = ''; 
+        // --------------------------------------------
+
+        const EXAM_DURATION_MINUTES = 100;
+        let timerInterval;
+
+        function createQuestions(start, end, containerId) {
+            const container = document.getElementById(containerId);
+            for (let i = start; i <= end; i++) {
+                let html = `<div class="question-row" id="row-${i}"><div class="q-num">${i}.</div><div class="options">`;
+                ['A', 'B', 'C', 'D', 'E'].forEach(opt => {
+                    html += `<input type="radio" name="q${i}" id="q${i}${opt}" value="${opt}" onchange="saveAnswer(${i}, '${opt}')"><label for="q${i}${opt}">${opt}</label>`;
+                });
+                html += `</div></div>`;
+                container.innerHTML += html;
+            }
+        }
+        createQuestions(1, 30, 'twk-container');
+        createQuestions(31, 65, 'tiu-container');
+        createQuestions(66, 110, 'tkp-container');
+
+        window.onload = function() {
+            for (let i = 1; i <= 110; i++) {
+                const saved = localStorage.getItem('cpns_q' + i);
+                if (saved) { const el = document.getElementById('q' + i + saved); if (el) el.checked = true; }
+            }
+            if(localStorage.getItem('keyTWK')) document.getElementById('keyTWK').value = localStorage.getItem('keyTWK');
+            if(localStorage.getItem('keyTIU')) document.getElementById('keyTIU').value = localStorage.getItem('keyTIU');
+            if(localStorage.getItem('manualTKP')) document.getElementById('manualTKP').value = localStorage.getItem('manualTKP');
+            startTimer();
+        };
+
+        function startTimer() {
+            let targetTime = localStorage.getItem('cpns_target_time');
+            if (!targetTime) {
+                const now = new Date().getTime();
+                targetTime = now + (EXAM_DURATION_MINUTES * 60 * 1000);
+                localStorage.setItem('cpns_target_time', targetTime);
+            }
+            timerInterval = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = targetTime - now;
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                const display = document.getElementById("time-left");
+                display.innerHTML = (hours > 0 ? hours + "j " : "") + minutes + "m " + seconds + "d";
+                const timerBar = document.getElementById("timer-bar");
+                if (distance < 5 * 60 * 1000) { timerBar.style.backgroundColor = "#c0392b"; }
+                if (distance < 0) { clearInterval(timerInterval); display.innerHTML = "WAKTU HABIS!"; timerBar.style.backgroundColor = "#c0392b"; alert("WAKTU HABIS!"); }
+            }, 1000);
+        }
+
+        function saveAnswer(n, val) { localStorage.setItem('cpns_q' + n, val); }
+        document.getElementById('keyTWK').addEventListener('input', function() { localStorage.setItem('keyTWK', this.value); });
+        document.getElementById('keyTIU').addEventListener('input', function() { localStorage.setItem('keyTIU', this.value); });
+        document.getElementById('manualTKP').addEventListener('input', function() { localStorage.setItem('manualTKP', this.value); });
+
+        function bukaAreaKunci() {
+            document.querySelector('.sticky-footer').style.display = 'none';
+            document.getElementById('secret-area').style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+            clearInterval(timerInterval);
+            document.getElementById("timer-bar").style.backgroundColor = "#27ae60"; 
+            document.getElementById("time-left").innerHTML = "SELESAI";
+        }
+
+        function calculateScore() {
+            const kTWK = document.getElementById('keyTWK').value.toUpperCase().replace(/[^A-E]/g, '');
+            const kTIU = document.getElementById('keyTIU').value.toUpperCase().replace(/[^A-E]/g, '');
+            const sTKP = parseInt(document.getElementById('manualTKP').value) || 0;
+            let sTWK = 0, sTIU = 0;
+            document.querySelectorAll('.question-row').forEach(r => r.classList.remove('correct', 'wrong'));
+
+            for (let i = 1; i <= 30; i++) {
+                const userAns = document.querySelector(`input[name="q${i}"]:checked`);
+                const keyAns = kTWK[i-1]; const row = document.getElementById(`row-${i}`);
+                if (userAns && keyAns) { if (userAns.value === keyAns) { sTWK += 5; row.classList.add('correct'); } else { row.classList.add('wrong'); } }
+            }
+            for (let i = 31; i <= 65; i++) {
+                const userAns = document.querySelector(`input[name="q${i}"]:checked`);
+                const keyAns = kTIU[i-31]; const row = document.getElementById(`row-${i}`);
+                if (userAns && keyAns) { if (userAns.value === keyAns) { sTIU += 5; row.classList.add('correct'); } else { row.classList.add('wrong'); } }
+            }
+
+            const total = sTWK + sTIU + sTKP;
+            document.getElementById('res-twk').innerText = sTWK;
+            document.getElementById('res-tiu').innerText = sTIU;
+            document.getElementById('res-tkp').innerText = sTKP;
+            document.getElementById('res-total').innerText = total;
+            document.getElementById('result-display').style.display = 'block';
+
+            if(scriptURL) {
+                const btn = document.querySelector('#secret-area button.btn-main');
+                const originalText = btn.innerText;
+                btn.innerText = "Menyimpan ke Cloud...";
+                btn.disabled = true;
+                const formData = new FormData();
+                formData.append('Nilai TWK', sTWK); formData.append('Nilai TIU', sTIU); formData.append('Nilai TKP', sTKP); formData.append('TOTAL', total);
+                fetch(scriptURL, { method: 'POST', body: formData })
+                    .then(response => { alert(`SUKSES! Skor Total ${total} tersimpan.`); btn.innerText = originalText; btn.disabled = false; })
+                    .catch(error => { alert('Gagal simpan ke Excel (Cek koneksi).'); btn.innerText = originalText; btn.disabled = false; });
+            }
+        }
+
+        function resetForm() {
+            if(confirm('Yakin mau reset WAKTU dan SEMUA JAWABAN?')) { localStorage.clear(); location.reload(); }
+        }
+    </script>
+</body>
+</html>
