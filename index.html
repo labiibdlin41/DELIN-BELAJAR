@@ -213,7 +213,18 @@
         };
 
         function renderChart(data) {
-            const labels = data.map(item => item.label.toString().substring(0, 5)); 
+            // --- BAGIAN INI YANG DIPERBAIKI BIAR TANGGALNYA CANTIK (DD/MM) ---
+            const labels = data.map(item => {
+                let date = new Date(item.label);
+                if (!isNaN(date.getTime())) {
+                    let day = date.getDate().toString().padStart(2, '0');
+                    let month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    return `${day}/${month}`;
+                }
+                return item.label.toString().substring(0, 10);
+            });
+            // ------------------------------------------------------------------
+
             const scoresTotal = data.map(item => item.total);
             const scoresTWK = data.map(item => item.twk);
             const scoresTIU = data.map(item => item.tiu);
