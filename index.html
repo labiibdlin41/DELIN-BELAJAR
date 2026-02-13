@@ -2,113 +2,179 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LJK Digital CPNS - Fixed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulasi CAT CPNS</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f6f8; padding: 20px; padding-top: 70px; max-width: 600px; margin: 0 auto; color: #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; color: #333; }
         
+        /* HEADER TIMER (Fixed Top) */
         #timer-bar {
             position: fixed; top: 0; left: 0; width: 100%;
             background: #2c3e50; color: #fff;
-            padding: 15px; text-align: center;
-            font-size: 1.2em; font-weight: bold;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000; transition: background 0.3s;
+            padding: 15px 0; text-align: center;
+            font-size: 1.5em; font-weight: bold; letter-spacing: 2px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 1000; display: none; /* Sembunyi dulu sebelum mulai */
         }
-        
-        h2 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
-        .subtitle { text-align: center; color: #666; font-size: 0.9em; margin-bottom: 20px; }
-        .section-header { background: #34495e; color: #fff; padding: 10px 15px; border-radius: 6px; margin-top: 30px; font-weight: bold; }
-        .question-row { display: flex; align-items: center; background: #fff; margin-bottom: 8px; padding: 12px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .q-num { width: 40px; font-weight: bold; color: #555; }
-        .options { display: flex; gap: 8px; flex-grow: 1; justify-content: space-around; }
+
+        .container { max-width: 700px; margin: 80px auto 40px auto; padding: 20px; }
+
+        /* LAYAR SAMBUTAN (LOBBY) */
+        #welcome-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; background: #fff; position: fixed; top: 0; left: 0; width: 100%; z-index: 2000;
+        }
+        .welcome-box { text-align: center; padding: 30px; max-width: 400px; }
+        .btn-start {
+            background: #27ae60; color: white; border: none; padding: 20px 40px;
+            font-size: 1.5em; font-weight: bold; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4); transition: transform 0.2s;
+        }
+        .btn-start:active { transform: scale(0.95); }
+
+        /* SOAL & OPSI */
+        .section-header { background: #34495e; color: #fff; padding: 12px 20px; border-radius: 8px; margin-top: 30px; font-weight: bold; font-size: 1.1em; }
+        .question-row { display: flex; align-items: center; background: #fff; margin-bottom: 10px; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .q-num { width: 40px; font-weight: bold; color: #555; font-size: 1.1em; }
+        .options { display: flex; gap: 10px; flex-grow: 1; justify-content: space-between; }
         
         input[type="radio"] { display: none; }
-        label { display: inline-block; width: 40px; height: 40px; line-height: 40px; text-align: center; border-radius: 50%; background: #eee; color: #555; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
-        input[type="radio"]:checked + label { background: #2980b9; color: white; transform: scale(1.1); }
+        label { 
+            display: flex; align-items: center; justify-content: center;
+            width: 45px; height: 45px; border-radius: 50%; 
+            background: #e9ecef; color: #555; font-weight: bold; font-size: 16px;
+            cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+        }
+        input[type="radio"]:checked + label { background: #007bff; color: white; border-color: #0056b3; transform: scale(1.1); }
         
-        .correct { background-color: #d4edda !important; border-left: 5px solid #28a745; }
-        .wrong { background-color: #f8d7da !important; border-left: 5px solid #dc3545; }
+        /* WARNA KOREKSI */
+        .correct { background-color: #d4edda !important; border-left: 6px solid #28a745; }
+        .wrong { background-color: #f8d7da !important; border-left: 6px solid #dc3545; }
 
-        #secret-area { display: none; margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 20px; background: #fff; padding: 20px; border-radius: 10px; }
-        .key-input-group { margin-bottom: 15px; }
-        .key-input-group label { display: block; width: 100%; font-weight: bold; margin-bottom: 5px; }
-        .key-input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-family: monospace; letter-spacing: 3px; text-transform: uppercase; font-size: 1.1em; }
-        .score-input { width: 100px; padding: 10px; border: 2px solid #2980b9; border-radius: 6px; font-weight: bold; font-size: 1.2em; text-align: center; }
-        .score-display { text-align: center; margin-top: 20px; padding: 15px; background: #2c3e50; color: white; border-radius: 8px; }
-        .btn-main { display: block; width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .sticky-footer { position: sticky; bottom: 20px; z-index: 100; }
+        /* AREA KUNCI & HASIL */
+        #exam-interface { display: none; } /* Disembunyikan sampai klik Mulai */
+        #secret-area { display: none; margin-top: 30px; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        
+        .key-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; letter-spacing: 5px; font-size: 1.2em; text-transform: uppercase; }
+        .score-box { text-align: center; background: #2c3e50; color: white; padding: 20px; border-radius: 10px; margin-top: 20px; }
+        
+        .btn-main { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-reset { background: #dc3545; margin-top: 20px; }
+        
+        .sticky-footer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; z-index: 900; }
     </style>
 </head>
 <body>
 
-    <div id="timer-bar">Waktu: <span id="time-left">Loading...</span></div>
-
-    <h2>LJK Digital CPNS</h2>
-    <div class="subtitle">Kerjakan soal dulu. Hitung skor belakangan.</div>
-
-    <form id="ljkForm">
-        <div class="section-header">TWK (1-30)</div>
-        <div id="twk-container"></div>
-        <div class="section-header">TIU (31-65)</div>
-        <div id="tiu-container"></div>
-        <div class="section-header">TKP (66-110)</div>
-        <div id="tkp-container"></div>
-    </form>
-
-    <div class="sticky-footer">
-        <button type="button" class="btn-main" onclick="bukaAreaKunci()">Selesai & Input Kunci</button>
+    <div id="welcome-screen">
+        <div class="welcome-box">
+            <h1 style="color:#2c3e50; margin-bottom: 5px;">CAT SKD CPNS</h1>
+            <p style="color:#777; margin-bottom: 30px;">Waktu: 1 Jam 40 Menit (100 Menit)<br>Jumlah Soal: 110 Butir</p>
+            <button class="btn-start" onclick="mulaiUjian()">MULAI UJIAN</button>
+        </div>
     </div>
 
-    <div id="secret-area">
-        <h3 style="text-align:center;">Input Kunci Jawaban</h3>
-        <div class="key-input-group">
+    <div id="timer-bar"><span id="time-left">00:00:00</span></div>
+
+    <div id="exam-interface" class="container">
+        <form id="ljkForm">
+            <div class="section-header">TWK (Nasionalisme - No 1-30)</div>
+            <div id="twk-container"></div>
+
+            <div class="section-header">TIU (Logika - No 31-65)</div>
+            <div id="tiu-container"></div>
+
+            <div class="section-header">TKP (Kepribadian - No 66-110)</div>
+            <div id="tkp-container"></div>
+        </form>
+
+        <div class="sticky-footer">
+            <button type="button" class="btn-main" style="background: #27ae60; box-shadow: 0 4px 10px rgba(0,0,0,0.2);" onclick="bukaAreaKunci()">SELESAI & INPUT KUNCI</button>
+        </div>
+
+        <div id="secret-area">
+            <h3 style="text-align:center; color:#2c3e50;">Input Kunci Jawaban</h3>
+            
             <label>Kunci TWK (30 Huruf):</label>
             <input type="text" id="keyTWK" class="key-input" placeholder="ABCD..." maxlength="30">
-        </div>
-        <div class="key-input-group">
+            
             <label>Kunci TIU (35 Huruf):</label>
             <input type="text" id="keyTIU" class="key-input" placeholder="ABCD..." maxlength="35">
-        </div>
-        <div class="key-input-group" style="background: #e8f6f3; padding: 15px; border-radius: 8px; border: 1px solid #d4efdf;">
-            <label style="color:#16a085;">Skor TKP Manual:</label>
-            <input type="number" id="manualTKP" class="score-input" placeholder="0">
-        </div>
-        <button type="button" class="btn-main" style="background:#2980b9;" onclick="calculateScore()">HITUNG SKOR TOTAL</button>
+            
+            <label>Skor Manual TKP (Angka):</label>
+            <input type="number" id="manualTKP" class="key-input" placeholder="Contoh: 145" style="letter-spacing: normal;">
+            
+            <button type="button" class="btn-main" onclick="calculateScore()">HITUNG SKOR TOTAL</button>
 
-        <div id="result-display" style="display:none;">
-            <div class="score-display">
-                <p>TWK: <span id="res-twk">0</span> | TIU: <span id="res-tiu">0</span> | TKP: <span id="res-tkp">0</span></p>
-                <h1 style="margin:10px 0;">TOTAL: <span id="res-total">0</span></h1>
+            <div id="result-display" style="display:none;">
+                <div class="score-box">
+                    <div style="display:flex; justify-content:space-around; margin-bottom:10px; font-size:0.9em;">
+                        <span>TWK: <b id="res-twk">0</b></span>
+                        <span>TIU: <b id="res-tiu">0</b></span>
+                        <span>TKP: <b id="res-tkp">0</b></span>
+                    </div>
+                    <h1 style="margin:0; font-size:3em;" id="res-total">0</h1>
+                    <small>TOTAL SKD</small>
+                </div>
+                <button type="button" class="btn-main btn-reset" onclick="resetForm()">RESET SEMUA (ULANG DARI AWAL)</button>
             </div>
-            <button type="button" style="background:#c0392b; color:white; border:none; padding:10px; border-radius:5px; margin-top:15px; width:100%; cursor:pointer;" onclick="resetForm()">Reset Waktu & Jawaban</button>
         </div>
     </div>
 
     <script>
-        // --- TEMPEL URL DI ANTARA TANDA KUTIP INI ---
+        // --- PASTE URL GOOGLE APPS SCRIPT DI SINI (JANGAN SAMPAI SALAH KUTIP) ---
         const scriptURL = ''; 
-        // --------------------------------------------
+        // ------------------------------------------------------------------------
 
-        const EXAM_DURATION_MINUTES = 100;
+        const EXAM_DURATION_MINUTES = 100; // 1 Jam 40 Menit
         let timerInterval;
 
+        // 1. Generate Soal
         function createQuestions(start, end, containerId) {
             const container = document.getElementById(containerId);
+            let html = '';
             for (let i = start; i <= end; i++) {
-                let html = `<div class="question-row" id="row-${i}"><div class="q-num">${i}.</div><div class="options">`;
+                html += `<div class="question-row" id="row-${i}"><div class="q-num">${i}.</div><div class="options">`;
                 ['A', 'B', 'C', 'D', 'E'].forEach(opt => {
-                    html += `<input type="radio" name="q${i}" id="q${i}${opt}" value="${opt}" onchange="saveAnswer(${i}, '${opt}')"><label for="q${i}${opt}">${opt}</label>`;
+                    html += `<input type="radio" name="q${i}" id="q${i}${opt}" value="${opt}" onchange="saveAnswer(${i}, '${opt}')">
+                             <label for="q${i}${opt}">${opt}</label>`;
                 });
                 html += `</div></div>`;
-                container.innerHTML += html;
             }
+            container.innerHTML = html;
         }
         createQuestions(1, 30, 'twk-container');
         createQuestions(31, 65, 'tiu-container');
         createQuestions(66, 110, 'tkp-container');
 
+        // 2. Logic Startup
         window.onload = function() {
+            // Cek apakah ujian sedang berlangsung (ada timer tersimpan)
+            if (localStorage.getItem('cpns_target_time')) {
+                tampilkanUjian();
+                restoreAnswers();
+                startTimer(); // Lanjut timer
+            } else {
+                // Kalau gak ada, tetap di Lobby (Welcome Screen)
+            }
+        };
+
+        function mulaiUjian() {
+            const now = new Date().getTime();
+            const targetTime = now + (EXAM_DURATION_MINUTES * 60 * 1000);
+            localStorage.setItem('cpns_target_time', targetTime);
+            
+            tampilkanUjian();
+            startTimer();
+        }
+
+        function tampilkanUjian() {
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('exam-interface').style.display = 'block';
+            document.getElementById('timer-bar').style.display = 'block';
+        }
+
+        function restoreAnswers() {
             for (let i = 1; i <= 110; i++) {
                 const saved = localStorage.getItem('cpns_q' + i);
                 if (saved) { const el = document.getElementById('q' + i + saved); if (el) el.checked = true; }
@@ -116,27 +182,40 @@
             if(localStorage.getItem('keyTWK')) document.getElementById('keyTWK').value = localStorage.getItem('keyTWK');
             if(localStorage.getItem('keyTIU')) document.getElementById('keyTIU').value = localStorage.getItem('keyTIU');
             if(localStorage.getItem('manualTKP')) document.getElementById('manualTKP').value = localStorage.getItem('manualTKP');
-            startTimer();
-        };
+        }
 
+        // 3. Logic Timer HH:MM:SS
         function startTimer() {
             let targetTime = localStorage.getItem('cpns_target_time');
-            if (!targetTime) {
-                const now = new Date().getTime();
-                targetTime = now + (EXAM_DURATION_MINUTES * 60 * 1000);
-                localStorage.setItem('cpns_target_time', targetTime);
-            }
+            
             timerInterval = setInterval(function() {
                 const now = new Date().getTime();
                 const distance = targetTime - now;
+
+                if (distance < 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById("time-left").innerHTML = "00:00:00";
+                    document.getElementById("timer-bar").style.background = "#c0392b";
+                    alert("WAKTU HABIS!");
+                    bukaAreaKunci();
+                    return;
+                }
+
+                // Hitung Jam, Menit, Detik
                 const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                const display = document.getElementById("time-left");
-                display.innerHTML = (hours > 0 ? hours + "j " : "") + minutes + "m " + seconds + "d";
-                const timerBar = document.getElementById("timer-bar");
-                if (distance < 5 * 60 * 1000) { timerBar.style.backgroundColor = "#c0392b"; }
-                if (distance < 0) { clearInterval(timerInterval); display.innerHTML = "WAKTU HABIS!"; timerBar.style.backgroundColor = "#c0392b"; alert("WAKTU HABIS!"); }
+
+                // Format biar selalu 2 digit (01:05:09)
+                const h = hours < 10 ? "0" + hours : hours;
+                const m = minutes < 10 ? "0" + minutes : minutes;
+                const s = seconds < 10 ? "0" + seconds : seconds;
+
+                document.getElementById("time-left").innerHTML = `${h}:${m}:${s}`;
+
+                if (distance < 5 * 60 * 1000) { // 5 menit terakhir merah
+                    document.getElementById("timer-bar").style.background = "#c0392b";
+                }
             }, 1000);
         }
 
@@ -146,11 +225,11 @@
         document.getElementById('manualTKP').addEventListener('input', function() { localStorage.setItem('manualTKP', this.value); });
 
         function bukaAreaKunci() {
+            clearInterval(timerInterval); // Stop timer
             document.querySelector('.sticky-footer').style.display = 'none';
             document.getElementById('secret-area').style.display = 'block';
             window.scrollTo(0, document.body.scrollHeight);
-            clearInterval(timerInterval);
-            document.getElementById("timer-bar").style.backgroundColor = "#27ae60"; 
+            document.getElementById("timer-bar").style.background = "#27ae60"; 
             document.getElementById("time-left").innerHTML = "SELESAI";
         }
 
@@ -159,17 +238,26 @@
             const kTIU = document.getElementById('keyTIU').value.toUpperCase().replace(/[^A-E]/g, '');
             const sTKP = parseInt(document.getElementById('manualTKP').value) || 0;
             let sTWK = 0, sTIU = 0;
+            
             document.querySelectorAll('.question-row').forEach(r => r.classList.remove('correct', 'wrong'));
 
+            // Koreksi TWK
             for (let i = 1; i <= 30; i++) {
                 const userAns = document.querySelector(`input[name="q${i}"]:checked`);
                 const keyAns = kTWK[i-1]; const row = document.getElementById(`row-${i}`);
-                if (userAns && keyAns) { if (userAns.value === keyAns) { sTWK += 5; row.classList.add('correct'); } else { row.classList.add('wrong'); } }
+                if (userAns && keyAns) { 
+                    if (userAns.value === keyAns) { sTWK += 5; row.classList.add('correct'); } 
+                    else { row.classList.add('wrong'); } 
+                }
             }
+            // Koreksi TIU
             for (let i = 31; i <= 65; i++) {
                 const userAns = document.querySelector(`input[name="q${i}"]:checked`);
                 const keyAns = kTIU[i-31]; const row = document.getElementById(`row-${i}`);
-                if (userAns && keyAns) { if (userAns.value === keyAns) { sTIU += 5; row.classList.add('correct'); } else { row.classList.add('wrong'); } }
+                if (userAns && keyAns) { 
+                    if (userAns.value === keyAns) { sTIU += 5; row.classList.add('correct'); } 
+                    else { row.classList.add('wrong'); } 
+                }
             }
 
             const total = sTWK + sTIU + sTKP;
@@ -179,21 +267,28 @@
             document.getElementById('res-total').innerText = total;
             document.getElementById('result-display').style.display = 'block';
 
+            // Kirim ke Excel
             if(scriptURL) {
                 const btn = document.querySelector('#secret-area button.btn-main');
-                const originalText = btn.innerText;
-                btn.innerText = "Menyimpan ke Cloud...";
-                btn.disabled = true;
-                const formData = new FormData();
-                formData.append('Nilai TWK', sTWK); formData.append('Nilai TIU', sTIU); formData.append('Nilai TKP', sTKP); formData.append('TOTAL', total);
-                fetch(scriptURL, { method: 'POST', body: formData })
-                    .then(response => { alert(`SUKSES! Skor Total ${total} tersimpan.`); btn.innerText = originalText; btn.disabled = false; })
-                    .catch(error => { alert('Gagal simpan ke Excel (Cek koneksi).'); btn.innerText = originalText; btn.disabled = false; });
+                const oriText = btn.innerText;
+                btn.innerText = "Menyimpan..."; btn.disabled = true;
+                
+                const fd = new FormData();
+                fd.append('Nilai TWK', sTWK); fd.append('Nilai TIU', sTIU); 
+                fd.append('Nilai TKP', sTKP); fd.append('TOTAL', total);
+                
+                fetch(scriptURL, { method: 'POST', body: fd })
+                    .then(r => { alert(`Data Tersimpan! Total: ${total}`); btn.innerText = oriText; btn.disabled = false; })
+                    .catch(e => { alert('Gagal koneksi Excel.'); btn.innerText = oriText; btn.disabled = false; });
             }
         }
 
+        // FUNGSI RESET TOTAL
         function resetForm() {
-            if(confirm('Yakin mau reset WAKTU dan SEMUA JAWABAN?')) { localStorage.clear(); location.reload(); }
+            if(confirm('Yakin mau RESET SEMUA? Waktu & Jawaban akan dihapus dan kembali ke awal.')) {
+                localStorage.clear();
+                location.reload(); // Reload halaman untuk kembali ke Lobby
+            }
         }
     </script>
 </body>
