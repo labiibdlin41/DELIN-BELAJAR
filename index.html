@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Simulasi CAT CPNS (Dual Sheet)</title>
+    <title>Simulasi CAT CPNS (Clean Mode)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; color: #333; padding-top: 80px; padding-bottom: 50px; }
         
@@ -46,14 +46,6 @@
         .btn-main { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-reset { background: #c0392b; margin-top: 20px; border-bottom: 5px solid #922b21; }
         .sticky-footer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; z-index: 900; }
-        
-        #history-section { margin-top: 50px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: none; }
-        .history-item { border-bottom: 1px solid #eee; padding: 15px 0; }
-        .history-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; cursor: pointer; }
-        .history-date { font-size: 0.9em; color: #777; }
-        .history-score { color: #2980b9; font-size: 1.1em; }
-        .history-details { display: none; margin-top: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px; font-size: 0.9em; }
-        .wrong-list { color: #c0392b; font-family: monospace; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -88,7 +80,7 @@
             <input type="text" id="keyTIU" class="key-input" placeholder="ABCD..." maxlength="35">
             <label>Skor Manual TKP (Angka):</label>
             <input type="number" id="manualTKP" class="key-input" placeholder="Contoh: 145" style="letter-spacing: normal;">
-            <button type="button" class="btn-main" onclick="calculateScore()">HITUNG SKOR & SIMPAN</button>
+            <button type="button" class="btn-main" onclick="calculateScore()">HITUNG SKOR & KIRIM KE EXCEL</button>
 
             <div id="result-display" style="display:none;">
                 <div class="score-box">
@@ -102,12 +94,6 @@
                 </div>
                 <button type="button" class="btn-main btn-reset" onclick="resetForm()">⚠ RESET & KERJAKAN ULANG</button>
             </div>
-        </div>
-
-        <div id="history-section">
-            <h3 style="color:#2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;">📚 Riwayat & Evaluasi</h3>
-            <div id="history-list"></div>
-            <button onclick="clearHistory()" style="margin-top:20px; background:none; border:none; color:#c0392b; cursor:pointer; font-size:0.9em;">Hapus Semua Riwayat</button>
         </div>
     </div>
 
@@ -138,7 +124,6 @@
 
         window.onload = function() {
             restoreAnswers();
-            renderHistory();
             const savedTarget = localStorage.getItem('cpns_target_time');
             if (savedTarget) {
                 document.getElementById('btn-start-timer').style.display = 'none';
@@ -195,7 +180,6 @@
             localStorage.setItem('cpns_last_time', currentTime); 
             document.querySelector('.sticky-footer').style.display = 'none';
             document.getElementById('secret-area').style.display = 'block';
-            document.getElementById('history-section').style.display = 'block'; 
             window.scrollTo(0, document.body.scrollHeight);
             document.getElementById("timer-bar").style.background = "#27ae60"; 
             document.getElementById("time-text").innerHTML = "SELESAI"; 
@@ -211,7 +195,7 @@
 
             document.querySelectorAll('.question-row').forEach(r => r.classList.remove('correct', 'wrong'));
 
-            // Logic Hitung & Cek Salah
+            // Logic Hitung
             for (let i = 1; i <= 30; i++) {
                 const userAns = document.querySelector(`input[name="q${i}"]:checked`);
                 const keyAns = kTWK[i-1]; const row = document.getElementById(`row-${i}`);
@@ -236,9 +220,7 @@
             document.getElementById('res-total').innerText = total;
             document.getElementById('result-display').style.display = 'block';
 
-            // --- SUSUN DATA BUAT DIKIRIM ---
-            
-            // 1. Susun Laporan Evaluasi (String Panjang)
+            // --- KIRIM KE EXCEL (2 SHEET) ---
             let laporanEvaluasi = "";
             if (wrongLog.length === 0) {
                 laporanEvaluasi = "PERFECT! Tidak ada salah di TWK & TIU.";
@@ -253,74 +235,24 @@
                 }
             }
 
-            // 2. Kirim ke Excel
             if(scriptURL) {
                 const btn = document.querySelector('#secret-area button.btn-main');
                 const oriText = btn.innerText;
-                btn.innerText = "Menyimpan ke 2 Sheet..."; btn.disabled = true;
+                btn.innerText = "Mengirim ke Excel..."; btn.disabled = true;
                 
                 let sisaWaktuKirim = localStorage.getItem('cpns_last_time') || "Waktu Habis";
 
                 const fd = new FormData();
-                fd.append('Waktu', sisaWaktuKirim); // Ini akan jadi kunci penghubung
+                fd.append('Waktu', sisaWaktuKirim); 
                 fd.append('Nilai TWK', sTWK); 
                 fd.append('Nilai TIU', sTIU); 
                 fd.append('Nilai TKP', sTKP); 
                 fd.append('TOTAL', total);
-                fd.append('Evaluasi', laporanEvaluasi); // Ini masuk ke Sheet2
+                fd.append('Evaluasi', laporanEvaluasi); 
                 
                 fetch(scriptURL, { method: 'POST', body: fd })
-                    .then(r => { alert(`Data Tersimpan!\n- Skor di Sheet 1\n- Evaluasi di Sheet 2`); btn.innerText = oriText; btn.disabled = false; })
+                    .then(r => { alert(`Data Tersimpan di Excel!`); btn.innerText = oriText; btn.disabled = false; })
                     .catch(e => { alert('Gagal koneksi Excel.'); btn.innerText = oriText; btn.disabled = false; });
-            }
-
-            saveHistoryToLocal(total, sTWK, sTIU, sTKP, wrongLog);
-        }
-
-        function saveHistoryToLocal(total, twk, tiu, tkp, wrongs) {
-            const now = new Date().toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
-            const historyData = {
-                id: Date.now(),
-                date: now,
-                scores: { total, twk, tiu, tkp },
-                wrongs: wrongs
-            };
-            let histories = JSON.parse(localStorage.getItem('cpns_history') || '[]');
-            histories.unshift(historyData);
-            localStorage.setItem('cpns_history', JSON.stringify(histories));
-            renderHistory();
-        }
-
-        function renderHistory() {
-            const list = document.getElementById('history-list');
-            const histories = JSON.parse(localStorage.getItem('cpns_history') || '[]');
-            const section = document.getElementById('history-section');
-            if (histories.length > 0) section.style.display = 'block';
-            list.innerHTML = histories.map(h => `
-                <div class="history-item">
-                    <div class="history-header" onclick="toggleDetail(${h.id})">
-                        <div><div class="history-date">${h.date}</div><div>Total: <b class="history-score">${h.scores.total}</b> (TWK:${h.scores.twk} TIU:${h.scores.tiu} TKP:${h.scores.tkp})</div></div>
-                        <div style="font-size:0.8em; color:#007bff;">Lihat Detail ▼</div>
-                    </div>
-                    <div id="detail-${h.id}" class="history-details">
-                        <b>Analisis Kesalahan (${h.wrongs.length} Soal):</b><br>
-                        <div class="wrong-list">
-                            ${h.wrongs.length === 0 ? "Hebat! Tidak ada yang salah (TWK/TIU)." : h.wrongs.map(w => `<span>• No ${w.no} (${w.type}): Jawab <b>${w.user}</b> vs Kunci <b style="color:green">${w.key}</b></span><br>`).join('')}
-                        </div>
-                    </div>
-                </div>`).join('');
-        }
-
-        function toggleDetail(id) {
-            const el = document.getElementById(`detail-${id}`);
-            el.style.display = el.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function clearHistory() {
-            if(confirm("Hapus semua riwayat ujian?")) {
-                localStorage.removeItem('cpns_history');
-                renderHistory();
-                document.getElementById('history-section').style.display = 'none';
             }
         }
 
