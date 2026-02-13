@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Simulasi CAT CPNS</title>
+    <title>Simulasi CAT CPNS (Sisa Waktu)</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; color: #333; padding-top: 80px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; color: #333; padding-top: 80px; padding-bottom: 50px; }
         
-        /* HEADER TIMER */
         #timer-bar {
             position: fixed; top: 0; left: 0; width: 100%;
             background: #2c3e50; color: #fff;
@@ -25,70 +24,36 @@
         #btn-start-timer:active { transform: translateY(4px); box-shadow: none; }
 
         .container { max-width: 700px; margin: 0 auto 40px auto; padding: 20px; }
-
-        /* SOAL & OPSI (BAGIAN INI YANG DIUBAH TOTAL) */
         .section-header { background: #34495e; color: #fff; padding: 12px 20px; border-radius: 8px; margin-top: 30px; font-weight: bold; font-size: 1.1em; }
-        
-        .question-row { 
-            display: flex; 
-            align-items: center; 
-            background: #fff; 
-            margin-bottom: 10px; 
-            padding: 12px 15px; /* Padding atas bawah pas */
-            border-radius: 12px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
-        }
-        
-        .q-num { 
-            width: 30px; /* Lebar nomor fix */
-            font-weight: bold; 
-            color: #555; 
-            font-size: 1.1em;
-            flex-shrink: 0; /* Biar nomor gak kegencet */
-            margin-right: 10px; /* Jarak dikit dari nomor ke area tombol */
-        }
-        
-        .options { 
-            flex-grow: 1; /* KUNCI: Ambil semua sisa tempat kosong */
-            display: flex; 
-            justify-content: center; /* KUNCI: Tengahkan tombol di sisa tempat itu */
-            gap: 15px; /* Jarak antar tombol A B C D E */
-            flex-wrap: wrap; /* Kalau layar kekecilan dia turun rapi */
-        }
-        
+        .question-row { display: flex; align-items: center; background: #fff; margin-bottom: 10px; padding: 12px 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .q-num { width: 30px; font-weight: bold; color: #555; font-size: 1.1em; flex-shrink: 0; margin-right: 10px; }
+        .options { flex-grow: 1; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
         input[type="radio"] { display: none; }
-        
-        /* Desain Tombol Bulat */
         .options label { 
             display: flex; align-items: center; justify-content: center;
             width: 45px; height: 45px; border-radius: 50%; 
             background: #f8f9fa; color: #555; font-weight: bold; font-size: 16px;
             cursor: pointer; transition: all 0.2s; border: 2px solid #e9ecef;
         }
-        /* Efek Hover & Klik */
-        input[type="radio"]:checked + label { 
-            background: #007bff; color: white; border-color: #007bff; 
-            transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,123,255,0.3);
-        }
-        
+        input[type="radio"]:checked + label { background: #007bff; color: white; border-color: #007bff; transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,123,255,0.3); }
         .correct { background-color: #d4edda !important; border-left: 6px solid #28a745; }
         .wrong { background-color: #f8d7da !important; border-left: 6px solid #dc3545; }
 
-        /* AREA KUNCI */
         #secret-area { display: none; margin-top: 30px; background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        #secret-area label { 
-            display: block; width: 100%; text-align: left; 
-            font-weight: bold; margin-bottom: 8px; color: #2c3e50; font-size: 1em;
-        }
-
+        #secret-area label { display: block; width: 100%; text-align: left; font-weight: bold; margin-bottom: 8px; color: #2c3e50; font-size: 1em; }
         .key-input { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; letter-spacing: 5px; font-size: 1.2em; text-transform: uppercase; box-sizing: border-box; }
         .score-box { text-align: center; background: #2c3e50; color: white; padding: 20px; border-radius: 10px; margin-top: 20px; }
-        
         .btn-main { width: 100%; padding: 15px; background: #007bff; color: white; border: none; border-radius: 10px; font-size: 1.2em; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-reset { background: #c0392b; margin-top: 20px; border-bottom: 5px solid #922b21; }
-        .btn-reset:active { border-bottom: none; transform: translateY(5px); }
-        
         .sticky-footer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; z-index: 900; }
+        
+        #history-section { margin-top: 50px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: none; }
+        .history-item { border-bottom: 1px solid #eee; padding: 15px 0; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; cursor: pointer; }
+        .history-date { font-size: 0.9em; color: #777; }
+        .history-score { color: #2980b9; font-size: 1.1em; }
+        .history-details { display: none; margin-top: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px; font-size: 0.9em; }
+        .wrong-list { color: #c0392b; font-family: monospace; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -100,35 +65,30 @@
         </div>
     </div>
 
-    <div id="exam-interface" class="container">
-        <form id="ljkForm">
-            <div class="section-header">TWK (Nasionalisme - No 1-30)</div>
-            <div id="twk-container"></div>
-
-            <div class="section-header">TIU (Logika - No 31-65)</div>
-            <div id="tiu-container"></div>
-
-            <div class="section-header">TKP (Kepribadian - No 66-110)</div>
-            <div id="tkp-container"></div>
-        </form>
-
-        <div class="sticky-footer">
-            <button type="button" class="btn-main" style="background: #27ae60; box-shadow: 0 4px 0 #1e8449;" onclick="bukaAreaKunci()">SELESAI & INPUT KUNCI</button>
+    <div class="container">
+        <div id="exam-interface">
+            <form id="ljkForm">
+                <div class="section-header">TWK (Nasionalisme - No 1-30)</div>
+                <div id="twk-container"></div>
+                <div class="section-header">TIU (Logika - No 31-65)</div>
+                <div id="tiu-container"></div>
+                <div class="section-header">TKP (Kepribadian - No 66-110)</div>
+                <div id="tkp-container"></div>
+            </form>
+            <div class="sticky-footer">
+                <button type="button" class="btn-main" style="background: #27ae60; box-shadow: 0 4px 0 #1e8449;" onclick="bukaAreaKunci()">SELESAI & INPUT KUNCI</button>
+            </div>
         </div>
 
         <div id="secret-area">
             <h3 style="text-align:center; color:#2c3e50; margin-bottom:20px;">Input Kunci Jawaban</h3>
-            
             <label>Kunci TWK (30 Huruf):</label>
             <input type="text" id="keyTWK" class="key-input" placeholder="ABCD..." maxlength="30">
-            
             <label>Kunci TIU (35 Huruf):</label>
             <input type="text" id="keyTIU" class="key-input" placeholder="ABCD..." maxlength="35">
-            
             <label>Skor Manual TKP (Angka):</label>
             <input type="number" id="manualTKP" class="key-input" placeholder="Contoh: 145" style="letter-spacing: normal;">
-            
-            <button type="button" class="btn-main" onclick="calculateScore()">HITUNG SKOR TOTAL</button>
+            <button type="button" class="btn-main" onclick="calculateScore()">HITUNG SKOR & SIMPAN</button>
 
             <div id="result-display" style="display:none;">
                 <div class="score-box">
@@ -140,8 +100,14 @@
                     <h1 style="margin:0; font-size:3em;" id="res-total">0</h1>
                     <small>TOTAL SKD</small>
                 </div>
-                <button type="button" class="btn-main btn-reset" onclick="resetForm()">⚠ RESET SEMUA (HAPUS DATA)</button>
+                <button type="button" class="btn-main btn-reset" onclick="resetForm()">⚠ RESET & KERJAKAN ULANG</button>
             </div>
+        </div>
+
+        <div id="history-section">
+            <h3 style="color:#2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;">📚 Riwayat & Evaluasi</h3>
+            <div id="history-list"></div>
+            <button onclick="clearHistory()" style="margin-top:20px; background:none; border:none; color:#c0392b; cursor:pointer; font-size:0.9em;">Hapus Semua Riwayat</button>
         </div>
     </div>
 
@@ -150,9 +116,8 @@
         const scriptURL = 'https://script.google.com/macros/s/AKfycby58zrFnAov9TAcuBlK1NHnSbAHqMRxIzyfpwVFQhwkzl_D6tabiPSaX64Kklb5YQPv8g/exec'; 
         // --------------------------------------------
 
-        const EXAM_DURATION_MINUTES = 100; // 1 Jam 40 Menit
+        const EXAM_DURATION_MINUTES = 100;
         let timerInterval;
-        let isRunning = false;
 
         function createQuestions(start, end, containerId) {
             const container = document.getElementById(containerId);
@@ -173,12 +138,11 @@
 
         window.onload = function() {
             restoreAnswers();
+            renderHistory();
             const savedTarget = localStorage.getItem('cpns_target_time');
             if (savedTarget) {
                 document.getElementById('btn-start-timer').style.display = 'none';
                 runTimer(savedTarget);
-            } else {
-                document.getElementById('time-text').innerText = "01:40:00";
             }
         };
 
@@ -191,11 +155,9 @@
         }
 
         function runTimer(targetTime) {
-            isRunning = true;
             timerInterval = setInterval(function() {
                 const now = new Date().getTime();
                 const distance = targetTime - now;
-
                 if (distance < 0) {
                     clearInterval(timerInterval);
                     document.getElementById("time-text").innerText = "00:00:00";
@@ -204,14 +166,10 @@
                     bukaAreaKunci();
                     return;
                 }
-
                 const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                const h = hours < 10 ? "0" + hours : hours;
-                const m = minutes < 10 ? "0" + minutes : minutes;
-                const s = seconds < 10 ? "0" + seconds : seconds;
-                document.getElementById("time-text").innerText = `${h}:${m}:${s}`;
+                document.getElementById("time-text").innerText = `${hours < 10 ? "0" + hours : hours}:${minutes < 10 ? "0" + minutes : minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
                 if (distance < 5 * 60 * 1000) document.getElementById("timer-bar").style.background = "#c0392b";
             }, 1000);
         }
@@ -235,9 +193,10 @@
             clearInterval(timerInterval); 
             document.querySelector('.sticky-footer').style.display = 'none';
             document.getElementById('secret-area').style.display = 'block';
+            document.getElementById('history-section').style.display = 'block'; 
             window.scrollTo(0, document.body.scrollHeight);
             document.getElementById("timer-bar").style.background = "#27ae60"; 
-            document.getElementById("time-text").innerHTML = "SELESAI";
+            document.getElementById("time-text").innerHTML = "SELESAI"; // Menandakan selesai di timer
             document.getElementById('btn-start-timer').style.display = 'none';
         }
 
@@ -246,18 +205,25 @@
             const kTIU = document.getElementById('keyTIU').value.toUpperCase().replace(/[^A-E]/g, '');
             const sTKP = parseInt(document.getElementById('manualTKP').value) || 0;
             let sTWK = 0, sTIU = 0;
-            
+            let wrongLog = [];
+
             document.querySelectorAll('.question-row').forEach(r => r.classList.remove('correct', 'wrong'));
 
             for (let i = 1; i <= 30; i++) {
                 const userAns = document.querySelector(`input[name="q${i}"]:checked`);
                 const keyAns = kTWK[i-1]; const row = document.getElementById(`row-${i}`);
-                if (userAns && keyAns) { if (userAns.value === keyAns) { sTWK += 5; row.classList.add('correct'); } else { row.classList.add('wrong'); } }
+                if (userAns && keyAns) { 
+                    if (userAns.value === keyAns) { sTWK += 5; row.classList.add('correct'); } 
+                    else { row.classList.add('wrong'); wrongLog.push({no: i, type: 'TWK', user: userAns.value, key: keyAns}); } 
+                } else if (!userAns && keyAns) { wrongLog.push({no: i, type: 'TWK', user: '-', key: keyAns}); }
             }
             for (let i = 31; i <= 65; i++) {
                 const userAns = document.querySelector(`input[name="q${i}"]:checked`);
                 const keyAns = kTIU[i-31]; const row = document.getElementById(`row-${i}`);
-                if (userAns && keyAns) { if (userAns.value === keyAns) { sTIU += 5; row.classList.add('correct'); } else { row.classList.add('wrong'); } }
+                if (userAns && keyAns) { 
+                    if (userAns.value === keyAns) { sTIU += 5; row.classList.add('correct'); } 
+                    else { row.classList.add('wrong'); wrongLog.push({no: i, type: 'TIU', user: userAns.value, key: keyAns}); } 
+                } else if (!userAns && keyAns) { wrongLog.push({no: i, type: 'TIU', user: '-', key: keyAns}); }
             }
 
             const total = sTWK + sTIU + sTKP;
@@ -267,22 +233,114 @@
             document.getElementById('res-total').innerText = total;
             document.getElementById('result-display').style.display = 'block';
 
+            // --- REVISI: KIRIM SISA WAKTU (Bukan jam saat ini) ---
             if(scriptURL) {
                 const btn = document.querySelector('#secret-area button.btn-main');
                 const oriText = btn.innerText;
                 btn.innerText = "Menyimpan..."; btn.disabled = true;
+                
+                // Ambil sisa waktu dari Timer (Teks yang muncul di layar atas)
+                // Kalau Timer sudah 'SELESAI' (karena diklik tombol selesai), kita ambil dari variabel lain atau
+                // biarkan dia kirim 'SELESAI'. Tapi lebih baik kirim 'Sisa Waktu' terakhir.
+                // Trik: Sebelum teks berubah jadi 'SELESAI', teksnya adalah angka jam.
+                // Tapi di fungsi bukaAreaKunci() teks udah diubah.
+                // Solusi: Kita ambil teks jam SAAT script jalan, tapi karena timer dah stop, 
+                // teks 'SELESAI' mungkin sudah muncul.
+                
+                // WAIT: Di fungsi bukaAreaKunci(), timer berhenti dan teks jadi 'SELESAI'.
+                // Berarti kita kehilangan angka waktunya dong?
+                // Oke, logika aman: User klik 'Hitung Skor' SETELAH 'Selesai & Input Kunci'.
+                // Jadi di layar udah tulisannya "SELESAI".
+                // Waduh, berarti kita gak bisa ambil sisa waktunya kalau udah terlanjur klik Selesai.
+                
+                // SOLUSI: Simpan sisa waktu ke LocalStorage pas klik 'Selesai & Input Kunci'
+                // Di sini saya ubah flow-nya sedikit.
+                
+                let sisaWaktuKirim = localStorage.getItem('cpns_last_time') || "Waktu Habis/Tak Tercatat";
+
                 const fd = new FormData();
                 fd.append('Nilai TWK', sTWK); fd.append('Nilai TIU', sTIU); 
                 fd.append('Nilai TKP', sTKP); fd.append('TOTAL', total);
+                
+                // Ini kuncinya: Kirim parameter 'Waktu' isinya SISA WAKTU
+                fd.append('Waktu', sisaWaktuKirim); 
+                
                 fetch(scriptURL, { method: 'POST', body: fd })
                     .then(r => { alert(`Data Tersimpan! Total: ${total}`); btn.innerText = oriText; btn.disabled = false; })
                     .catch(e => { alert('Gagal koneksi Excel.'); btn.innerText = oriText; btn.disabled = false; });
             }
+
+            saveHistoryToLocal(total, sTWK, sTIU, sTKP, wrongLog);
+        }
+
+        // Simpan waktu terakhir saat tombol 'Selesai' diklik
+        // Timpa fungsi bukaAreaKunci yang lama
+        function bukaAreaKunci() {
+            clearInterval(timerInterval);
+            
+            // Ambil teks waktu SEBELUM diubah jadi kata 'SELESAI'
+            const currentTime = document.getElementById("time-text").innerText;
+            localStorage.setItem('cpns_last_time', currentTime); // Simpan sementara
+
+            document.querySelector('.sticky-footer').style.display = 'none';
+            document.getElementById('secret-area').style.display = 'block';
+            document.getElementById('history-section').style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+            document.getElementById("timer-bar").style.background = "#27ae60"; 
+            document.getElementById("time-text").innerHTML = "SELESAI";
+            document.getElementById('btn-start-timer').style.display = 'none';
+        }
+
+        function saveHistoryToLocal(total, twk, tiu, tkp, wrongs) {
+            const now = new Date().toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
+            const historyData = {
+                id: Date.now(),
+                date: now,
+                scores: { total, twk, tiu, tkp },
+                wrongs: wrongs
+            };
+            let histories = JSON.parse(localStorage.getItem('cpns_history') || '[]');
+            histories.unshift(historyData);
+            localStorage.setItem('cpns_history', JSON.stringify(histories));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            const histories = JSON.parse(localStorage.getItem('cpns_history') || '[]');
+            const section = document.getElementById('history-section');
+            if (histories.length > 0) section.style.display = 'block';
+            list.innerHTML = histories.map(h => `
+                <div class="history-item">
+                    <div class="history-header" onclick="toggleDetail(${h.id})">
+                        <div><div class="history-date">${h.date}</div><div>Total: <b class="history-score">${h.scores.total}</b> (TWK:${h.scores.twk} TIU:${h.scores.tiu} TKP:${h.scores.tkp})</div></div>
+                        <div style="font-size:0.8em; color:#007bff;">Lihat Detail ▼</div>
+                    </div>
+                    <div id="detail-${h.id}" class="history-details">
+                        <b>Analisis Kesalahan (${h.wrongs.length} Soal):</b><br>
+                        <div class="wrong-list">
+                            ${h.wrongs.length === 0 ? "Hebat! Tidak ada yang salah (TWK/TIU)." : h.wrongs.map(w => `<span>• No ${w.no} (${w.type}): Jawab <b>${w.user}</b> vs Kunci <b style="color:green">${w.key}</b></span><br>`).join('')}
+                        </div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function toggleDetail(id) {
+            const el = document.getElementById(`detail-${id}`);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function clearHistory() {
+            if(confirm("Hapus semua riwayat ujian?")) {
+                localStorage.removeItem('cpns_history');
+                renderHistory();
+                document.getElementById('history-section').style.display = 'none';
+            }
         }
 
         function resetForm() {
-            if(confirm('Yakin mau RESET SEMUA? Waktu & Jawaban akan dihapus.')) {
-                localStorage.clear();
+            if(confirm('Yakin mau RESET? Waktu akan ulang, jawaban dihapus.')) {
+                Object.keys(localStorage).forEach(key => { if(key.startsWith('cpns_q') || key === 'cpns_target_time' || key === 'cpns_last_time') localStorage.removeItem(key); });
                 window.location.reload();
             }
         }
