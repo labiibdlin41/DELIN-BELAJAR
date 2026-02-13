@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LJK Digital CPNS - Timer Mode</title>
+    <title>LJK Digital CPNS - Fixed</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f6f8; padding: 20px; padding-top: 70px; max-width: 600px; margin: 0 auto; color: #333; }
         
-        /* TIMER STYLING (YANG BARU) */
         #timer-bar {
             position: fixed; top: 0; left: 0; width: 100%;
             background: #2c3e50; color: #fff;
@@ -19,64 +18,22 @@
         
         h2 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #666; font-size: 0.9em; margin-bottom: 20px; }
-        
         .section-header { background: #34495e; color: #fff; padding: 10px 15px; border-radius: 6px; margin-top: 30px; font-weight: bold; }
-        
         .question-row { display: flex; align-items: center; background: #fff; margin-bottom: 8px; padding: 12px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .q-num { width: 40px; font-weight: bold; color: #555; }
         .options { display: flex; gap: 8px; flex-grow: 1; justify-content: space-around; }
         
         input[type="radio"] { display: none; }
-        label { 
-            display: inline-block; width: 40px; height: 40px; line-height: 40px; 
-            text-align: center; border-radius: 50%; background: #eee; color: #555;
-            cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s;
-        }
+        label { display: inline-block; width: 40px; height: 40px; line-height: 40px; text-align: center; border-radius: 50%; background: #eee; color: #555; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
         input[type="radio"]:checked + label { background: #2980b9; color: white; transform: scale(1.1); }
         
         .correct { background-color: #d4edda !important; border-left: 5px solid #28a745; }
         .wrong { background-color: #f8d7da !important; border-left: 5px solid #dc3545; }
 
         #secret-area { display: none; margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 20px; background: #fff; padding: 20px; border-radius: 10px; }
-        
         .key-input-group { margin-bottom: 15px; }
         .key-input-group label { display: block; width: 100%; font-weight: bold; margin-bottom: 5px; }
         .key-input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-family: monospace; letter-spacing: 3px; text-transform: uppercase; font-size: 1.1em; }
         .score-input { width: 100px; padding: 10px; border: 2px solid #2980b9; border-radius: 6px; font-weight: bold; font-size: 1.2em; text-align: center; }
-
         .score-display { text-align: center; margin-top: 20px; padding: 15px; background: #2c3e50; color: white; border-radius: 8px; }
-        .btn-main { display: block; width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .sticky-footer { position: sticky; bottom: 20px; z-index: 100; }
-    </style>
-</head>
-<body>
-
-    <div id="timer-bar">Waktu: <span id="time-left">Loading...</span></div>
-
-    <h2>LJK Digital CPNS</h2>
-    <div class="subtitle">Kerjakan soal dulu. Hitung skor belakangan.</div>
-
-    <form id="ljkForm">
-        <div class="section-header">TWK (1-30)</div>
-        <div id="twk-container"></div>
-
-        <div class="section-header">TIU (31-65)</div>
-        <div id="tiu-container"></div>
-
-        <div class="section-header">TKP (66-110)</div>
-        <div id="tkp-container"></div>
-    </form>
-
-    <div class="sticky-footer">
-        <button type="button" class="btn-main" onclick="bukaAreaKunci()">Selesai & Input Kunci</button>
-    </div>
-
-    <div id="secret-area">
-        <h3 style="text-align:center;">Input Kunci Jawaban</h3>
-        
-        <div class="key-input-group">
-            <label>Kunci TWK (30 Huruf):</label>
-            <input type="text" id="keyTWK" class="key-input" placeholder="ABCD..." maxlength="30">
-        </div>
-
-        <div class="
+        .btn-main { display: block; width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 1.1em;
