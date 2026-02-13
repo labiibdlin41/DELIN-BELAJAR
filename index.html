@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CAT CPNS PRO (Multi-Chart)</title>
+    <title>CAT CPNS PRO (Final Complete)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 0; color: #333; }
         
-        /* DASHBOARD */
+        /* === DASHBOARD / LOBBY STYLE === */
         #lobby-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #fff; z-index: 2000; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; overflow-y: auto;
+            align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
+            overflow-y: auto;
         }
         .dashboard-card {
             background: white; width: 100%; max-width: 600px;
-            padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;
+            padding: 20px; border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;
         }
-        .chart-container { position: relative; height: 320px; width: 100%; margin: 20px 0; }
+        .chart-container { position: relative; height: 300px; width: 100%; margin: 20px 0; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-item { background: #f8f9fa; padding: 10px; border-radius: 10px; border: 1px solid #eee; }
         .stat-val { font-size: 1.5em; font-weight: bold; color: #2c3e50; }
@@ -32,8 +34,9 @@
         }
         .btn-start-big:hover { transform: scale(1.02); }
 
-        /* UJIAN */
+        /* === UJIAN STYLE (Hidden awalnya) === */
         #exam-wrapper { display: none; padding-top: 80px; padding-bottom: 80px; }
+        
         #timer-bar {
             position: fixed; top: 0; left: 0; width: 100%;
             background: linear-gradient(90deg, #2c3e50, #34495e); color: #fff;
@@ -42,7 +45,7 @@
         }
         .timer-content { display: flex; align-items: center; gap: 15px; font-weight: bold; font-size: 1.4em; letter-spacing: 1px; font-family: monospace; }
         
-        /* NAV DRAWER */
+        /* Drawer & Map */
         .btn-map-toggle {
             background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;
             padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9em; display: flex; align-items: center; gap: 5px;
@@ -83,6 +86,12 @@
         .sticky-footer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; z-index: 900; }
         .key-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; letter-spacing: 3px; font-size: 1.1em; box-sizing: border-box; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
+        
+        /* RESULT BOX STYLE */
+        .res-grid { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; }
+        .res-item { text-align: center; }
+        .res-item small { display: block; font-size: 0.8em; opacity: 0.8; margin-bottom: 5px; }
+        .res-item b { font-size: 1.4em; }
     </style>
 </head>
 <body>
@@ -90,23 +99,23 @@
     <div id="lobby-screen">
         <div class="dashboard-card">
             <h2 style="color:#2c3e50; margin-bottom:5px;">Statistik Pejuang ASN</h2>
-            <p style="color:#7f8c8d; font-size:0.9em;">Pantau progress TWK, TIU, TKP kamu!</p>
+            <p style="color:#7f8c8d; font-size:0.9em;">Pantau progress belajarmu di sini</p>
             
             <div class="stat-grid">
                 <div class="stat-item">
                     <div class="stat-val" id="stat-high">-</div>
-                    <div class="stat-label">Total Tertinggi</div>
+                    <div class="stat-label">Tertinggi</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-val" id="stat-count">-</div>
-                    <div class="stat-label">Kali Tryout</div>
+                    <div class="stat-label">Total Tryout</div>
                 </div>
             </div>
 
             <div class="chart-container">
                 <canvas id="scoreChart"></canvas>
             </div>
-            <p id="loading-text" style="color:#e67e22; font-size:0.9em; font-style:italic;">⏳ Sedang mengambil data...</p>
+            <p id="loading-text" style="color:#e67e22; font-size:0.9em; font-style:italic;">⏳ Sedang mengambil data dari Excel...</p>
 
             <button class="btn-start-big" onclick="masukUjian()">🔥 MULAI UJIAN BARU</button>
         </div>
@@ -114,7 +123,9 @@
 
     <div id="exam-wrapper">
         <div id="timer-bar">
-            <div class="timer-content"><span id="time-text">01:40:00</span></div>
+            <div class="timer-content">
+                <span id="time-text">01:40:00</span>
+            </div>
             <button class="btn-map-toggle" onclick="toggleMap()"><span>🔢 Peta Soal</span></button>
         </div>
 
@@ -143,10 +154,27 @@
                 <button type="button" class="btn-main" onclick="calculateScore()">HITUNG SKOR & KIRIM</button>
 
                 <div id="result-display" style="display:none; text-align:center; margin-top:20px;">
-                    <div style="background:#2c3e50; color:white; padding:15px; border-radius:10px;">
-                        <h1 style="font-size:3em; margin:10px 0;" id="res-total">0</h1>
-                        <small>Total Skor SKD</small>
+                    <div style="background:#2c3e50; color:white; padding:20px; border-radius:15px; box-shadow:0 5px 15px rgba(44, 62, 80, 0.3);">
+                        
+                        <div class="res-grid">
+                            <div class="res-item">
+                                <small>TWK</small>
+                                <b id="res-twk">0</b>
+                            </div>
+                            <div class="res-item">
+                                <small>TIU</small>
+                                <b id="res-tiu">0</b>
+                            </div>
+                            <div class="res-item">
+                                <small>TKP</small>
+                                <b id="res-tkp">0</b>
+                            </div>
+                        </div>
+
+                        <h1 style="font-size:3.5em; margin:0;" id="res-total">0</h1>
+                        <small style="opacity:0.8; letter-spacing:1px;">TOTAL SKOR SKD</small>
                     </div>
+                    
                     <button type="button" class="btn-main" style="background:#c0392b; margin-top:15px;" onclick="window.location.reload()">🏠 KEMBALI KE LOBBY</button>
                 </div>
             </div>
@@ -161,6 +189,7 @@
         const EXAM_DURATION_MINUTES = 100;
         let timerInterval;
 
+        // === 1. LOGIC DASHBOARD & GRAFIK ===
         window.onload = function() {
             createQuestions(1, 30, 'twk-container');
             createQuestions(31, 65, 'tiu-container');
@@ -176,13 +205,15 @@
                 })
                 .catch(error => {
                     document.getElementById('loading-text').innerText = "Gagal mengambil data Excel.";
-                    console.error(error);
+                    console.error('Error:', error);
                 });
-            } else { document.getElementById('loading-text').innerText = "URL Script belum dipasang."; }
+            } else {
+                document.getElementById('loading-text').innerText = "URL Script belum dipasang.";
+            }
         };
 
         function renderChart(data) {
-            const labels = data.map(item => item.label.toString().substring(0, 5)); // Ambil tgl pendek (DD/MM)
+            const labels = data.map(item => item.label.toString().substring(0, 5)); 
             const scoresTotal = data.map(item => item.total);
             const scoresTWK = data.map(item => item.twk);
             const scoresTIU = data.map(item => item.tiu);
@@ -199,47 +230,15 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        {
-                            label: 'TOTAL',
-                            data: scoresTotal,
-                            borderColor: '#2c3e50', // Biru Gelap Tebal
-                            borderWidth: 3,
-                            pointRadius: 4,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'TWK',
-                            data: scoresTWK,
-                            borderColor: '#e74c3c', // Merah
-                            borderWidth: 2,
-                            borderDash: [5, 5], // Garis putus-putus
-                            pointRadius: 2,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'TIU',
-                            data: scoresTIU,
-                            borderColor: '#f1c40f', // Kuning
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            pointRadius: 2,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'TKP',
-                            data: scoresTKP,
-                            borderColor: '#27ae60', // Hijau
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            pointRadius: 2,
-                            tension: 0.1
-                        }
+                        { label: 'TOTAL', data: scoresTotal, borderColor: '#2c3e50', borderWidth: 3, pointRadius: 4, tension: 0.1 },
+                        { label: 'TWK', data: scoresTWK, borderColor: '#e74c3c', borderWidth: 2, borderDash: [5, 5], pointRadius: 2, tension: 0.1 },
+                        { label: 'TIU', data: scoresTIU, borderColor: '#f1c40f', borderWidth: 2, borderDash: [5, 5], pointRadius: 2, tension: 0.1 },
+                        { label: 'TKP', data: scoresTKP, borderColor: '#27ae60', borderWidth: 2, borderDash: [5, 5], pointRadius: 2, tension: 0.1 }
                     ]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false }, // Biar kalau hover, muncul semua nilai
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
                     scales: { y: { beginAtZero: false } },
                     plugins: { legend: { position: 'bottom' } }
                 }
@@ -253,7 +252,7 @@
             if (savedTarget) { runTimer(savedTarget); } else { mulaiTimer(); }
         }
 
-        // --- EXAM LOGIC ---
+        // === 2. LOGIC UJIAN ===
         function createQuestions(start, end, containerId) {
             const container = document.getElementById(containerId);
             const mapGrid = document.getElementById('map-grid');
@@ -358,6 +357,10 @@
             }
 
             const total = sTWK + sTIU + sTKP;
+            // TAMPILKAN HASIL DI HTML
+            document.getElementById('res-twk').innerText = sTWK;
+            document.getElementById('res-tiu').innerText = sTIU;
+            document.getElementById('res-tkp').innerText = sTKP;
             document.getElementById('res-total').innerText = total;
             document.getElementById('result-display').style.display = 'block';
 
